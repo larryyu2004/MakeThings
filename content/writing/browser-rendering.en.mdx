@@ -1,0 +1,46 @@
+# How a browser turns a page into pixels
+
+A browser does not draw an HTML file directly. It parses resources, computes styles, lays out boxes, paints visual instructions, and presents the result. The original notes described eight fixed stages; that is a useful mental model, but real browser engines can schedule, skip, combine, and repeat work differently. This article keeps the model while separating guarantees from implementation details.
+
+## From HTML and CSS to boxes
+
+HTML parsing builds the document tree. CSS is parsed into rules that participate in style calculation. A stylesheet may not stop the HTML parser in the same way as a parser-blocking classic script, but CSS can delay rendering and can delay a script that depends on styles. A classic script without `async` or `defer` pauses HTML parsing while it is fetched and executed; `defer`, `async`, and modules change that scheduling.
+
+```text
+HTML + CSS → DOM + style rules → computed styles → layout boxes
+```
+
+The browser resolves selectors and inheritance to find each element's computed style. Layout then calculates geometry, such as width, height, and position. The layout representation is not a one-to-one copy of the DOM: elements with `display: none` do not create layout boxes, while generated content and anonymous boxes can.
+
+<Key>“Parsing,” “style,” and “layout” name different kinds of work. A page may return to style or layout many times after the first frame.</Key>
+
+## Paint and composite
+
+Painting records the visual operations needed for backgrounds, text, borders, shadows, and other content. Browsers may organize those operations into layers, split surfaces into tiles, rasterize them into pixels, and composite the result. These are helpful concepts, but the exact process and thread boundaries depend on the engine, device, and page.
+
+A simplified frame looks like this:
+
+```text
+DOM/style change
+  → style calculation (when needed)
+  → layout (when geometry changes)
+  → paint/raster (when pixels change)
+  → composite and present
+```
+
+Changing an element's width usually requires layout, followed by further visual work. Changing a color commonly requires paint but not layout. A transform or opacity animation can sometimes be handled by the compositor after the element is prepared as a layer, which is why those properties are often good animation choices. **Compositor-only behavior is an optimization, not a universal guarantee**: layer creation, filters, effects, and surrounding changes can still cause extra work.
+
+## Why long JavaScript tasks matter
+
+JavaScript, style, layout, and much of paint preparation compete for time on the page's main thread. A long task can delay event handling and the work needed for a new frame. Moving an element with `transform` may reduce layout work, but it does not make a blocked main thread irrelevant to every animation or interaction.
+
+For an interactive page, the practical approach is to measure what actually runs. Record a performance trace, look for long tasks, repeated layout, large paint areas, and excess layers, then change one cause at a time. Prefer transform and opacity for motion when they produce the intended result, and check the page on the devices that matter.
+
+## What I learned
+
+The rendering pipeline is best used as a diagnostic map. Ask **which kind of work did this change require?** Then verify the answer with browser tooling. That is more reliable than treating every CSS property as belonging to a permanent “fast” or “slow” category.
+
+### References
+
+- [MDN: How browsers work](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work)
+- [MDN: The script element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script)

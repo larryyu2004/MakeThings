@@ -1,0 +1,50 @@
+# Exploring an xv6 kernel on RISC-V
+
+An operating system kernel is easier to understand when the discussion begins with one question: **what happens when a process uses an address?** My original xv6 notes collected many facts about RISC-V, virtual memory, and page faults. This version follows the path from a user virtual address to a physical page, then shows how that path supports copy-on-write and lazy allocation.
+
+## Address translation in xv6
+
+RISC-V's Sv39 scheme translates a virtual address through three levels of page tables. A page-table entry (PTE) can point to the next level or map a page, and its flags describe permissions such as readable, writable, executable, and user accessible. A translation lookaside buffer caches recent translations; changing a mapping may require an appropriate `sfence.vma` before the CPU can rely on the new entry.
+
+```text
+User virtual address
+  → Sv39 page-table walk
+  → physical page (if a valid mapping permits the access)
+  → page fault (if the mapping or permission is unsuitable)
+```
+
+<Key>A virtual address is a name in a process's address space. It is not a promise that physical memory has already been allocated for that address.</Key>
+
+Each process has its own user page table. Xv6 also maintains a kernel page table. The trampoline is mapped so trap entry and return code can run while switching between user and kernel execution contexts. This distinction is more useful than treating all kernel and user mappings as a single table that is always “merged.”
+
+## Traps make memory policies possible
+
+When a user instruction accesses an unmapped page or violates a PTE permission, hardware raises a page fault. The kernel examines the faulting address and cause, then decides whether to repair the mapping or terminate the process. That decision depends on what the address means: a valid lazy heap page, a copy-on-write page, or an invalid access should not all receive the same response.
+
+For **lazy allocation**, `sbrk` can reserve a larger user address range without immediately mapping physical pages. On the first valid access, the page-fault handler allocates and clears a page, installs a user mapping, and retries the instruction. This saves work for reserved memory the process never touches, at the cost of handling faults on first use.
+
+For **copy-on-write fork**, parent and child initially share physical pages through read-only mappings. A write fault on a shared page triggers a private copy, updates the faulting process's PTE to a writable mapping, and resumes execution. Reference counts matter: freeing a physical page while another process still maps it would corrupt that process.
+
+```text
+fork: share page → clear write permission → record references
+write fault: validate COW page → copy if shared → update PTE → retry
+exit/unmap: release a physical page only after its last reference
+```
+
+These mechanisms are teaching extensions, not features to assume are present in every unmodified xv6 checkout. The exact files and behavior depend on the course version and project changes.
+
+## Keeping the explanation precise
+
+RISC-V describes an instruction set architecture; “five pipeline stages” describes a common teaching model, not a rule for every RISC-V processor. Likewise, an instruction is not always eight bytes merely because a machine is 64-bit: ordinary RISC-V instructions are commonly 32 bits, while the compressed extension adds 16-bit instructions. The next program counter depends on the instruction and control flow.
+
+The same caution applies to swapping. Virtual memory does not imply that xv6 automatically pages data to disk. A page-fault handler and backing-store policy have to be implemented for that behavior.
+
+## What I learned
+
+Page tables are a mechanism; the kernel's fault handler defines the policy. Once the address range, PTE permissions, physical-page ownership, and retry path are explicit, copy-on-write and lazy allocation become understandable variations of the same translation workflow.
+
+### References
+
+- [MIT: xv6, a simple Unix-like teaching operating system](https://pdos.csail.mit.edu/6.828/2025/xv6/book-riscv-rev5.pdf)
+- [MIT lab: Copy-on-Write Fork for xv6](https://pdos.csail.mit.edu/6.1810/2022/labs/cow.html)
+- [MIT lab: Lazy Page Allocation](https://pdos.csail.mit.edu/6.828/2019/labs/lazy.html)

@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.playwright-cli/
+output/
+tmp/
+*.tsbuildinfo
+.DS_Store
+.env*
+!.env.example

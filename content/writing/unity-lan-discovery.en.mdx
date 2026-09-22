@@ -1,0 +1,54 @@
+# Finding a Unity host on a local network
+
+A local multiplayer session has two separate jobs: **discover the host** and **connect to it**. Discovery tells a client where to try; the transport establishes the actual session. My original notes mixed these steps, which made a successful broadcast sound like a successful connection. They are different states and should be shown separately in the interface.
+
+## The discovery flow
+
+The host starts its transport listener, then periodically advertises a small UDP discovery message on the local network. A client listens on the agreed discovery port, validates incoming messages, and presents a candidate host. Only after the player selects that host does the client ask Unity Transport to connect.
+
+This is a custom discovery protocol. Unity's older UNet `NetworkDiscovery` component is legacy; it should not be confused with a built-in discovery feature of current Netcode for GameObjects.
+
+```text
+Host: start listener → send discovery messages
+Client: receive → validate → show candidate → connect
+Transport: connected only after the connection handshake succeeds
+```
+
+<Key>Receiving a discovery message proves that a packet reached the client. It does not prove that the host's game port is reachable or that the transport connection succeeded.</Key>
+
+A useful message contains a protocol version, session identifier, game port, and a short display name. It should not contain credentials. Clients should ignore malformed packets, versions they do not understand, their own advertisements, and duplicate session identifiers. Candidates need an expiry time so a host that has left the network disappears from the list.
+
+## Choosing an address
+
+A device can have Wi-Fi, cellular, VPN, virtual, and loopback interfaces. Taking the first IPv4 address returned by an API is unreliable. The address used for the game connection should be valid for the interface that reaches the peer. In particular, a phone running a hotspot can expose different interfaces from a phone that joined Wi-Fi.
+
+Where possible, let the receiving socket provide the sender's address and advertise only the game port. If the host must include an address, select it for the active network interface and test that choice on real devices. Keep a manual IP entry as a fallback when broadcast discovery is unavailable.
+
+## Threading and lifecycle
+
+Socket receive work should not block Unity's main thread. Pass validated results to the main thread before updating GameObjects or UI. Stop the listener and broadcaster when the discovery screen closes, the host stops, or the application exits. The network socket should be released even when cancellation or a receive error occurs.
+
+```csharp
+// Conceptual boundary; socket work runs outside Unity's main thread.
+while (!cancellationToken.IsCancellationRequested)
+{
+    var packet = await ReceiveDiscoveryPacketAsync(cancellationToken);
+    if (TryReadAdvertisement(packet, out var host))
+        mainThreadQueue.Enqueue(() => ShowOrRefreshHost(host));
+}
+```
+
+## Hotspots and platform limits
+
+UDP broadcast can work on a shared LAN, but hotspot routing, client isolation, operating-system permissions, and firewall rules vary. There is no universal hotspot subnet to hard-code. On iOS, local-network access can require a permission prompt; the app's network usage description must explain why it needs access. A device test matrix should include Wi-Fi, phone hotspot in both host directions, app background and foreground, host departure, and a denied local-network permission.
+
+When discovery fails, the UI should say **no host found** rather than **connection failed**. When discovery succeeds but the transport cannot connect, it should report that separate failure and offer a retry or manual address.
+
+## What I learned
+
+The reliable design is a small state machine: searching, host found, connecting, connected, and failed. Each transition has its own evidence and timeout. That model makes debugging and the player experience much clearer than a single “multiplayer ready” flag.
+
+### References
+
+- [Unity Multiplayer: Migrating from UNet to Netcode for GameObjects](https://docs-multiplayer.unity3d.com/netcode/1.8.1/installation/upgrade_from_UNet/)
+- [Apple: Local Network Privacy](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy)
