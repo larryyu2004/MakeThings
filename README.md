@@ -13,7 +13,7 @@ Run `npm run typecheck`, `npm run lint`, and `npm run build` before release.
 
 ## Writing
 
-The six MDX files in `content/writing/` are the published English and Chinese versions of three articles. The original Next-Portfolio project is not read at build time. Article titles, summaries, categories, and static import mappings live in `lib/writing.ts`. Add both language files and a registry entry to publish another article.
+The six selected articles live as English and Chinese MDX pairs in `content/writing/`. The Writing index also groups the additional articles in `content/writing/more/` by topic. The original Next-Portfolio project is not read at build time. Selected article metadata lives in `lib/writing-articles.ts`; additional article metadata and static MDX imports live in the `lib/more-articles-*.ts` registries. Add both language files and a registry entry to publish another article.
 
 The homepage uses the `larry-locale` and `larry-theme` preferences. Writing routes use an explicit language prefix, such as `/en/writing/browser-rendering` and `/zh/writing/browser-rendering`.
 

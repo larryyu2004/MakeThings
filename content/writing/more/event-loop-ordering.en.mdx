@@ -1,0 +1,26 @@
+# Predicting task and microtask order
+
+When a click handler queues more work, the order is easy to misread if everything is called “asynchronous.” My older event loop note collected rules; this smaller example tests one of them in a browser console:
+
+```js
+console.log("A");
+setTimeout(() => console.log("B"), 0);
+Promise.resolve().then(() => console.log("C"));
+console.log("D");
+// A, D, C, B
+```
+
+The current script runs to completion, so it logs `A` and `D`. The promise reaction is a microtask. The timer callback is a later task, even with a zero delay. After the script finishes, the browser drains queued microtasks before it starts that timer task. A zero delay means “eligible after the minimum timer delay and scheduling,” not “run immediately.”
+
+## Why this matters to an interaction
+
+Microtasks are useful for small follow-up work after the current stack. A long chain of microtasks can delay the browser's next rendering opportunity, just as a long task can. If an interface must show progress before expensive work, queuing all the work in promises does not guarantee that a frame appears. Split work into manageable pieces and measure the actual interaction.
+
+The console example predicts log order, not the exact time of a paint. Browsers choose rendering opportunities between tasks; background tabs, throttling, and other work affect timing. See [how the event loop affects page responsiveness](/en/writing/event-loop-responsiveness) for the broader interaction problem.
+
+<Key>Use task and microtask order to explain callbacks; use a performance trace to explain what the user saw.</Key>
+
+### References
+
+- [MDN: Using microtasks in JavaScript](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)
+- [MDN: The event loop](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model)

@@ -1,0 +1,30 @@
+# 原生 HTML 表单已经会做什么
+
+谈到表单时，人们常把提交当成必须由 JavaScript 控制的事情。原生 HTML 表单已经能指定目标、收集有效控件、编码字段，并让浏览器发起导航。旧笔记比较了 GET 和 POST，却把 POST 数据说成“用户看不到”，还暗示它没有长度限制。这两点都不能作为安全的设计规则。
+
+## 标签与具名控件
+
+下面的表单可以保存为 HTML 文件并在浏览器打开。`/search` 只是示意目标；真正返回搜索结果需要服务器提供对应路由。
+
+```html
+<form action="/search" method="get">
+  <label for="query">搜索词</label>
+  <input id="query" name="q" type="search" required>
+  <button type="submit">搜索</button>
+</form>
+```
+
+`for` 和 `id` 把可见标签与输入框关联起来，让点击标签也能聚焦控件，并为控件提供可访问名称。`name` 的职责不同：它是提交后的字段名。若省略它，请求中就没有这个输入框的 `q` 值。`required` 能阻止空值通过浏览器内置约束验证，但服务端仍必须验证数据。占位文字只是提示，不能代替标签。
+
+## 根据操作选择请求方法
+
+`method="get"` 会把字段序列化进 URL 查询部分，例如 `/search?q=browser`，适合可以收藏或分享的查询。普通表单使用 `method="post"` 时，会把字段放入请求体；除非另选编码，通常使用 `application/x-www-form-urlencoded`。POST 适合会改变服务端状态的操作，但请求体仍可被用户在开发者工具中查看，也可能被能够观察未加密连接的一方读取。因此应使用 HTTPS 保护传输，并在服务端检查权限。
+
+不能笼统说 POST“没有长度限制”：浏览器、服务器、代理和应用策略都可能设置上限。同样，GET URL 可能被记录或分享，不应放入秘密数据。表单提交还需要清楚的响应：GET 返回有用的结果页面；成功的 POST 通常可以重定向，以免刷新时意外重新提交。
+
+<Key>先使用有语义的控件，并让请求方法符合操作含义。只有交互确实需要时，再加入 JavaScript。</Key>
+
+### 参考资料
+
+- [HTML 标准：表单](https://html.spec.whatwg.org/multipage/forms.html)
+- [MDN：form 元素](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/form)

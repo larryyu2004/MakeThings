@@ -1,0 +1,31 @@
+# 沿着一条 Next.js 路由理解页面
+
+旧版 Next.js 笔记混合了不同时期的路由写法。面对当前的 App Router 页面，我会先问三个问题：用户怎样到达这个地址、页面从哪里取数据、哪些组件需要浏览器状态？
+
+## 导航必须有真实目的地
+
+站内文章链接可以使用 `Link` 指向一条真实路由，例如本地化文章页 `/zh/writing/example`。URL 让页面可以刷新、收藏和分享。客户端导航可能使切换更顺畅，但直接输入地址时，这条路由也应当正常工作。
+
+```tsx
+import Link from "next/link";
+
+export function ArticleLink() {
+  return <Link href="/zh/writing/example">阅读文章</Link>;
+}
+```
+
+这是示意组件，应用中必须实际存在该目标页面。
+
+## 数据与交互由不同边界负责
+
+App Router 的页面可以是异步 Server Component，在渲染前获取数据。主题切换之类使用浏览器事件或状态的控件，则需要 Client Component 边界。这不意味着整个页面都要改成 Client Component。页面也会收到路由参数；较新的 Next.js 版本将相关 API 设为异步，具体写法应以项目安装版本的文档为准。
+
+预渲染和缓存行为还取决于路由代码及配置。`generateStaticParams` 可以在构建时提供动态路径的参数，但它本身不能概括所有运行时与缓存行为。迁移旧教程时，需要检查本地版本文档，并分别验证直接访问、站内跳转和刷新。
+
+<Key>路由给页面一个可分享的地址；组件边界决定数据加载与交互在哪里运行。</Key>
+
+### 参考资料
+
+- [Next.js：链接与导航](https://nextjs.org/docs/app/getting-started/linking-and-navigating)
+- [Next.js：获取数据](https://nextjs.org/docs/app/getting-started/fetching-data)
+- [Next.js：generateStaticParams](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)

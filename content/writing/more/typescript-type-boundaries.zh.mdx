@@ -1,0 +1,53 @@
+# 把不可信的值挡在 TypeScript 边界外
+
+早期 TypeScript 笔记列出了基础类型、类型断言、接口和泛型。它们之间最有价值的联系发生在输入边界：类型标注表达程序期待什么，却不会在运行时验证实际收到的值。
+
+## `unknown` 保留待回答的问题
+
+考虑从存储或 API 读来的 JSON。解析器返回一个 JavaScript 值。如果立刻写 `as Article`，只是让编译器安静下来，并未检查数据结构。更稳妥的做法是从 `unknown` 开始，用运行时判断逐步缩小类型。
+
+```ts
+type Article = { slug: string; title: string };
+
+function isArticle(value: unknown): value is Article {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.slug === "string" &&
+    typeof record.title === "string";
+}
+
+const parsed: unknown = JSON.parse('{"slug":"intro","title":"Hello"}');
+if (isArticle(parsed)) {
+  console.log(parsed.title);
+}
+```
+
+转成 `Record<string, unknown>` 仅让对象检查之后可以读取属性；两个字段的判断才是真正的验证证据。这个守卫只检查了两个字段，并未覆盖所有业务规则：实际应用可能还要拒绝空字符串、未知字段或重复 slug。`any` 会让属性读取绕过检查；`unknown` 则迫使我们把判断写出来。
+
+## 精确表示已知状态
+
+输入通过验证后，可以用可辨识联合类型描述程序内部状态：
+
+```ts
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "ready"; article: Article }
+  | { kind: "error"; message: string };
+
+function label(state: LoadState): string {
+  switch (state.kind) {
+    case "loading": return "加载中";
+    case "ready": return state.article.title;
+    case "error": return state.message;
+  }
+}
+```
+
+`kind` 让 TypeScript 在不同分支缩小类型，避免尚在加载时错误读取只属于 ready 状态的 `article`。以后增加状态时，还可以利用 `never` 写穷尽性检查，让漏掉的分支在编译时暴露。
+
+<Key>在运行时验证输入一次，再让类型系统帮助后续代码保持一致。</Key>
+
+### 参考资料
+
+- [TypeScript 手册：类型缩小](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [TypeScript 手册：常用类型](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)

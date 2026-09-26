@@ -1,0 +1,33 @@
+# React memoization 什么时候值得使用
+
+我旧的 React 笔记说 `useCallback` 能阻止子组件渲染，但示例里的子组件根本没有使用传入的回调。这样的例子让优化显得像魔法。有效的验证应包括真正接收该属性的子组件、可测量的耗时渲染，以及与子组件无关的父组件更新。
+
+## 三种不同的缓存
+
+依赖不变时，`useMemo` 在多次渲染之间缓存计算结果；`useCallback` 保留函数引用；`memo` 则让属性比较相等的组件可以跳过渲染。三者针对不同的工作量，都不是保证正确性的机制。即使组件包了 `memo`，它自身状态或上下文改变时也仍可能重新渲染。
+
+```tsx
+import { memo, useCallback, useState } from "react";
+
+const SaveButton = memo(function SaveButton({ onSave }: { onSave: () => void }) {
+  return <button onClick={onSave}>Save</button>;
+});
+
+export default function Editor() {
+  const [count, setCount] = useState(0);
+  const onSave = useCallback(() => console.log("saved"), []);
+  return <><SaveButton onSave={onSave} /><button onClick={() => setCount(count + 1)}>{count}</button></>;
+}
+```
+
+这里 `SaveButton` 确实使用了 `onSave`。`count` 更新会让 `Editor` 重新渲染；由于回调属性仍相等，`memo` 可以跳过 `SaveButton` 的渲染。这个例子说明“可能跳过”，不代表可观的性能收益：按钮本身太轻。真实组件还要考虑所有属性与上下文；每次新建的对象属性会使浅比较失效。
+
+## 测量后再保留优化
+
+先保证组件正确，并把状态放在真正使用它的位置。然后用 React DevTools Profiler 找到卡顿交互和耗时渲染。如果是计算耗时，尝试带完整依赖的 `useMemo`；如果慢子组件反复收到新的函数属性，再尝试 `useCallback`。尽可能在生产构建中比较前后表现。memoization 增加代码和依赖列表；没有测到收益，就没有必要保留。
+
+### 参考资料
+
+- [React `useMemo`](https://react.dev/reference/react/useMemo)
+- [React `useCallback`](https://react.dev/reference/react/useCallback)
+- [React `memo`](https://react.dev/reference/react/memo)

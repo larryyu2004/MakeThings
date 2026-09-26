@@ -1,0 +1,33 @@
+# When React memoization earns its place
+
+An older React note said `useCallback` stops a child from rendering, but its child ignored the callback prop entirely. That example made the optimization look magical. A useful test must include a child that actually receives the prop, a measurable expensive render, and a parent update unrelated to that child.
+
+## Three different caches
+
+`useMemo` caches a calculation result between renders while its dependencies are unchanged. `useCallback` preserves a function reference under the same condition. `memo` allows a component to skip rendering when its props compare equal. They address different sources of work. None is a correctness mechanism, and React may still render a memoized component for its own state or context changes.
+
+```tsx
+import { memo, useCallback, useState } from "react";
+
+const SaveButton = memo(function SaveButton({ onSave }: { onSave: () => void }) {
+  return <button onClick={onSave}>Save</button>;
+});
+
+export default function Editor() {
+  const [count, setCount] = useState(0);
+  const onSave = useCallback(() => console.log("saved"), []);
+  return <><SaveButton onSave={onSave} /><button onClick={() => setCount(count + 1)}>{count}</button></>;
+}
+```
+
+Here `SaveButton` uses `onSave`. An update to `count` rerenders `Editor`; `memo` can skip rendering `SaveButton` because its callback prop remains equal. The example demonstrates a possible skip, not a performance win: the button is too cheap for that to matter. In a real component, all props and context must be considered. A newly created object prop would defeat the shallow prop comparison.
+
+## Measure before keeping it
+
+First make the component correct and keep state close to where it is used. Then use React DevTools Profiler to identify a slow interaction and check which render is expensive. If a calculation dominates, try `useMemo` with complete dependencies. If a slow memoized child is repeatedly receiving a new function prop, try `useCallback`. Compare before and after in a production build where possible. Memoization adds code and dependency lists, so remove it when measurement shows no benefit.
+
+### References
+
+- [React `useMemo`](https://react.dev/reference/react/useMemo)
+- [React `useCallback`](https://react.dev/reference/react/useCallback)
+- [React `memo`](https://react.dev/reference/react/memo)

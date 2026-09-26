@@ -1,0 +1,22 @@
+# Reading layout and paint work in a browser trace
+
+A rendering diagram can help us form a hypothesis, but it cannot show which work a particular page performed. My older browser notes described parsing, style, layout, paint, tiles, and rasterization as a fixed sequence. Real browsers can skip, repeat, or reorganize parts of that work. I use the stages as questions to ask while reading a performance trace.
+
+## Which input changed?
+
+If a change affects an element's geometry, the browser may need layout and then visual work. Changing a color commonly needs paint without recalculating geometry. A transform can sometimes be composited without new layout or paint after the element has been prepared, but that depends on the page and engine. None of these labels is a permanent performance guarantee for a CSS property.
+
+JavaScript can also force repeated layout if it alternates writes that change geometry with reads that demand current measurements. A trace can reveal the sequence: script work, style recalculation, layout, paint, and presentation. The order and duration are more useful than a generic list of “fast” and “slow” properties.
+
+## A measurement loop
+
+Record a representative interaction in the browser's Performance panel. Locate the input event and the next visible frame. Look for long tasks, repeated layout, large paint areas, and unexpected layer creation. Change one cause, capture another trace, and compare on the device that matters.
+
+<Key>A pipeline diagram explains possible work. A trace shows the work this page actually did.</Key>
+
+This approach keeps a rendering article practical: instead of claiming every animation should use a particular property, it asks whether the measured frame meets the interaction's needs.
+
+### References
+
+- [MDN: How browsers work](https://developer.mozilla.org/en-US/docs/Web/Performance/Guides/How_browsers_work)
+- [Chrome Developers: Rendering performance](https://developer.chrome.com/docs/devtools/performance/)

@@ -1,0 +1,33 @@
+# Anagrams are a fixed-size window
+
+[LeetCode 438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) asks for every start position in `s` where a substring is a permutation of `p`. The substring must have exactly `p.size()` characters. That fixed length makes a fixed-size window simpler than a variable window that repeatedly shrinks after seeing an excess character.
+
+## Compare frequencies, not order
+
+For lowercase English letters, two arrays of 26 counts represent the pattern and the current window. Add the new rightmost character. Once the window reaches the pattern length, compare arrays, record the start if they match, then remove the leftmost character before advancing. The order of letters is irrelevant; their multiplicities must agree.
+
+```cpp
+std::vector<int> findAnagrams(const std::string& s,
+                              const std::string& p) {
+    std::vector<int> answer;
+    if (p.empty() || p.size() > s.size()) return answer;
+    std::array<int, 26> need{}, have{};
+    for (char c : p) ++need[c - 'a'];
+    int width = static_cast<int>(p.size());
+    for (int right = 0; right < static_cast<int>(s.size()); ++right) {
+        ++have[s[right] - 'a'];
+        if (right >= width) --have[s[right - width] - 'a'];
+        if (right + 1 >= width && have == need)
+            answer.push_back(right - width + 1);
+    }
+    return answer;
+}
+```
+
+For `s = "cbaebabacd"` and `p = "abc"`, the windows `"cba"` and `"bac"` match, so the answer is `[0, 6]`. For `s = "abab"`, `p = "ab"`, overlapping windows are allowed and produce `[0, 1, 2]`.
+
+The loop keeps exactly the most recent `width` characters once that many have arrived. It removes the character just outside that range, so no earlier window can contaminate the next comparison.
+
+## Complexity and limits
+
+Initializing the pattern costs `O(m)` for pattern length `m`. For each of `n` text positions, comparing 26 counts costs a fixed amount, so total time is `O(m + 26n)`, conventionally `O(m + n)` for this fixed alphabet. Extra working space is `O(26)`, excluding output. If the alphabet is not fixed, comparing full maps at every position may cost more; use a maintained mismatch count or another representation. The code assumes lowercase `a` through `z`, as specified by the problem, and explicitly treats an empty pattern as producing no matches.

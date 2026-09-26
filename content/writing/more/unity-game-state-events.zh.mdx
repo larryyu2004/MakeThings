@@ -1,0 +1,41 @@
+# 让游戏状态主动通知 UI
+
+游戏画面需要知道当前应显示“准备”、倒计时、进行中还是结果。我的 Unity 笔记把状态机放进管理器，并在状态变化时发出事件。真正值得保留的想法是区分**谁决定状态**与**谁呈现状态**。这里介绍这个模式，不宣称它已用于某个发布的游戏。
+
+## 明确写出状态转换
+
+用封闭的状态集合表示游戏阶段，并在每次实际转换后发送一次通知。UI 订阅事件，再根据当前状态渲染，而不必每帧轮询。下面展示的是契约；输入、计时器与 UI 组件需要由具体项目提供。
+
+```csharp
+using System;
+
+public enum GameState { Waiting, Countdown, Playing, GameOver }
+
+public sealed class GameFlow
+{
+    public GameState State { get; private set; } = GameState.Waiting;
+    public event Action<GameState> StateChanged;
+
+    public void TransitionTo(GameState next)
+    {
+        if (State == next) return;
+        State = next;
+        StateChanged?.Invoke(State);
+    }
+}
+```
+
+这个示例有意不决定哪些转换合法。真实游戏应在同一处验证规则，例如只允许 `Waiting → Countdown → Playing → GameOver`，并说明重新开始意味着什么。UI 首次订阅时还应根据当前状态渲染一次；事件只描述变化，并不自动提供初始快照。
+
+## 让订阅时间与视图生命周期一致
+
+Unity 的 `MonoBehaviour` 视图可以在 `OnEnable` 订阅，在 `OnDisable` 取消订阅。处理函数收到新状态后选择正确面板。如果视图在禁用期间错过了事件，重新启用时再次读取当前状态，就不会显示过期画面。状态所有者负责转换；视图不应为了修正自身显示而擅自改变状态。
+
+暂停与状态相关，却是另一件事。`Time.timeScale = 0` 会停止按缩放时间推进的过程，并影响物理更新安排，但不是“冻结一切”的万能命令：未缩放时间和某些 UI 活动仍会继续。应显式表示暂停状态、通知视图，再决定每个计时器使用缩放还是未缩放时间。如果其他系统曾修改时间比例，恢复时可能需要还原先前值。
+
+<Key>状态事件减少重复轮询，但视图仍需要初始快照与清楚的订阅生命周期。</Key>
+
+### 参考资料
+
+- [Unity 脚本 API：Time.timeScale](https://docs.unity3d.com/ScriptReference/Time-timeScale.html)
+- [Unity 手册：事件函数执行顺序](https://docs.unity3d.com/Manual/ExecutionOrder.html)

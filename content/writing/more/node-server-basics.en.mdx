@@ -1,0 +1,37 @@
+# What a small Node server actually does
+
+An old note of mine started with installing Express and calling `listen`. That is a useful first command, but it hides the request and response boundary. Before adding a framework, I want to understand the smallest useful server: it accepts a request, chooses a response, and finishes that response.
+
+## One request, one response
+
+Save this as `server.mjs` and run `node server.mjs`. Visit `http://localhost:8383/health` and then a different path. This example uses Node's built-in HTTP module, so it needs no package installation.
+
+```js
+import { createServer } from "node:http";
+
+const server = createServer((request, response) => {
+  if (request.method === "GET" && request.url === "/health") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ status: "ok" }));
+    return;
+  }
+
+  response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  response.end("Not found");
+});
+
+server.listen(8383, () => console.log("Listening on http://localhost:8383"));
+```
+
+The request exposes a method and URL; the response carries a status, headers, and body. `response.end()` tells Node the response is complete. A `GET /health` check is deliberately simple; it says the process can answer a request, not that a database or another dependency is healthy. For a real service, define what “healthy” should include.
+
+## Where a framework helps
+
+As routes multiply, a framework can organize path matching, middleware, error handling, and request bodies. That does not replace the underlying HTTP exchange. The original note also suggested `bcryptjs` “encrypts” credentials. Passwords should instead be **hashed** with an appropriate password-hashing method and parameters; encryption and hashing solve different problems. Authentication, secrets, and database access deserve their own design, rather than being inferred from a starter server.
+
+The practical lesson is to trace a request before choosing abstractions: what arrived, what validation happened, what status went back, and whether the response completed. Once that flow is clear, Express or another framework becomes a tool for managing complexity rather than a prerequisite for understanding a server.
+
+### References
+
+- [Node.js HTTP API](https://nodejs.org/api/http.html)
+- [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)

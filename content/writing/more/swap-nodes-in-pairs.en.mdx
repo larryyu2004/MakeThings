@@ -1,0 +1,34 @@
+# Swap linked-list nodes without losing the tail
+
+[LeetCode 24](https://leetcode.com/problems/swap-nodes-in-pairs/) asks for adjacent nodes to change places, not merely for their values to be exchanged. The difficulty is preserving the link to the rest of the list while the local arrows are reversed.
+
+## Give the head a predecessor
+
+A dummy node points to the original head. It means the first pair and later pairs can use the same operation: `previous` always points to the node before the pair. Let `first` and `second` be the next two nodes, and save `after = second->next` before rewiring. The new links are `previous -> second -> first -> after`.
+
+```cpp
+// LeetCode supplies ListNode with fields val and next.
+ListNode* swapPairs(ListNode* head) {
+    ListNode dummy(0, head);
+    ListNode* previous = &dummy;
+    while (previous->next && previous->next->next) {
+        ListNode* first = previous->next;
+        ListNode* second = first->next;
+        ListNode* after = second->next;
+
+        previous->next = second;
+        second->next = first;
+        first->next = after;
+        previous = first;
+    }
+    return dummy.next;
+}
+```
+
+For `1 -> 2 -> 3 -> 4 -> 5`, the first pass yields `2 -> 1 -> 3 -> 4 -> 5`; the next yields `2 -> 1 -> 4 -> 3 -> 5`. The last node has no partner and remains in place. Empty and one-node lists never enter the loop, and `dummy.next` is the correct head in every case.
+
+## Why the saved pointer matters
+
+If we overwrite `second->next` before saving it, the original tail may become unreachable. If we forget `first->next = after`, we may leave a cycle or disconnect the remainder. A drawing with four labelled pointers is often more useful here than memorising lines of code: check every arrow before and after a swap.
+
+The loop handles each node at most once, so time is `O(n)`. It uses a fixed number of pointers and one stack-allocated dummy node, so extra space is `O(1)`. No values are changed and no list node is allocated or deleted.

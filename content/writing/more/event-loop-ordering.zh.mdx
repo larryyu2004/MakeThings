@@ -1,0 +1,26 @@
+# 预测任务与微任务的执行顺序
+
+点击处理函数排入后续工作时，如果只把它们统称为“异步”，很容易判断错顺序。旧版事件循环笔记列过不少规则；这里用一段可以直接放进浏览器控制台运行的代码检验其中一条：
+
+```js
+console.log("A");
+setTimeout(() => console.log("B"), 0);
+Promise.resolve().then(() => console.log("C"));
+console.log("D");
+// A, D, C, B
+```
+
+当前脚本会先执行完，因此输出 `A`、`D`。Promise 的回调是微任务；定时器回调属于之后的任务，即使延迟参数是零。脚本结束后，浏览器会先处理已排入的微任务，再运行这个定时器任务。“零延迟”不代表同步执行，也不保证精确的运行时刻。
+
+## 这与页面交互有什么关系
+
+微任务适合处理当前调用栈结束后的少量工作，但连续排入大量微任务也可能推迟下一次画面更新；长任务同样会阻塞响应。如果界面需要先显示进度，再执行昂贵的计算，把全部计算放进 Promise 回调并不能保证用户会先看到新画面。应该拆分工作，并测量真实交互。
+
+这段代码只能预测日志顺序，不能预测某一帧准确何时绘制。浏览器会在任务之间选择渲染时机，后台标签页与其他工作也会改变时间。更完整的交互分析见[事件循环怎样影响页面响应](/zh/writing/event-loop-responsiveness)。
+
+<Key>用任务和微任务解释回调顺序，用性能记录解释用户实际看到了什么。</Key>
+
+### 参考资料
+
+- [MDN：在 JavaScript 中使用微任务](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)
+- [MDN：事件循环](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Execution_model)

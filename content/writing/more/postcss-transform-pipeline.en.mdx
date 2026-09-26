@@ -1,0 +1,20 @@
+# PostCSS as a CSS transformation pipeline
+
+The old standalone PostCSS file was empty. This article is therefore a short conceptual primer drawn from the broader frontend engineering notes, not a claim that a particular project used PostCSS. Its central idea is that CSS can be parsed into a structure, changed by plugins, and written back out. What changes depends on the plugins configured by the project.
+
+## A tool and its plugins
+
+PostCSS itself is not a new CSS syntax or a single automatic compatibility switch. Its parser creates an abstract syntax tree; plugins inspect or transform that tree; a stringifier produces CSS. A plugin may add vendor prefixes, check style rules, or perform another defined transformation. Installing PostCSS alone does not promise any of those outcomes.
+
+Consider a stylesheet that uses a feature requiring a compatibility transformation for the browsers a product supports. The team should first declare those browser targets, choose the appropriate plugin, then compare the emitted CSS with the intended output. A transformation that was useful for an older target may be unnecessary for a newer one. Likewise, changing CSS output can alter behavior, so visual checks belong beside build checks.
+
+## Where it sits in a build
+
+The build tool usually reads the stylesheet, invokes a PostCSS processor with configured plugins, and writes the result to the deployable asset. The exact configuration file and plugin order depend on that tool. If the page looks wrong, inspect the input CSS, the plugin configuration, the generated CSS, and the browser's computed styles in that order. This isolates whether the problem came from authoring, transformation, or the cascade after delivery.
+
+The practical lesson is to describe each plugin by its observable output, rather than treating “uses PostCSS” as a feature on its own. The pipeline is valuable when a specific transformation or check supports a defined browser target and design requirement.
+
+### References
+
+- [PostCSS architecture](https://postcss.org/docs/postcss-architecture)
+- [PostCSS plugin guidelines](https://postcss.org/docs/postcss-plugin-guidelines)

@@ -1,0 +1,21 @@
+# A layered model for a web request
+
+“The browser sends an HTTP request” is useful shorthand, but it hides several separate jobs. My older networking notes listed layers and protocols. A better use for that list is to follow one request and ask what each part provides.
+
+Suppose a browser requests `https://example.com/article`. It first needs a usable address for the host; DNS commonly supplies one, though cached information can avoid a fresh lookup. The browser then establishes a connection appropriate to the HTTP version and server. At the application level, HTTP gives the request a method, target, headers, and possibly a body; the server returns a status, headers, and content.
+
+## Where the other layers help
+
+The transport layer carries communication between endpoints. TCP offers an ordered byte stream; other transports have different properties. IP addresses packets across networks, while the local link technology moves data over the next physical or wireless hop. A router can change the next hop without changing the HTTP resource the browser asked for.
+
+This is a teaching model, not a claim that every request always crosses the same five boxes in one visible sequence. HTTPS adds TLS security; proxies, caches, and modern HTTP transports affect what actually happens. A browser may reuse an existing connection, and a cache may satisfy a request without contacting the origin server. The model is valuable when it helps locate a problem: a missing name resolution result, a connection failure, an HTTP error status, and invalid page content are different failures.
+
+For the application-level view, see [From a URL to a page resource](/en/writing/url-to-resource).
+
+<Key>Use layers to assign responsibility to a failure, then verify the specific request in browser or network tools.</Key>
+
+### References
+
+- [MDN: Overview of HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Overview)
+- [IETF RFC 9293: Transmission Control Protocol](https://www.rfc-editor.org/rfc/rfc9293)
+- [IETF RFC 791: Internet Protocol](https://www.rfc-editor.org/rfc/rfc791)

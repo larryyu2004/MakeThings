@@ -1,0 +1,46 @@
+# A singleton is an ownership decision
+
+My old design-pattern note reduced a singleton to a static `Instance` field in a Unity `GameManager`. That field is convenient, but it does not alone guarantee a single object. Two scenes can each create a manager, and the last `Awake` assignment can silently replace the first. The real question is **who owns the service, for how long, and how do users receive it?**
+
+## What the static property buys
+
+A global property makes a manager easy to reach from any component. For a tiny prototype with one known scene, that may be enough. But callers now have a hidden dependency: a method can call `GameManager.Instance` without revealing that requirement in its constructor or serialized fields. Tests must arrange global state, and scene transitions must agree on which instance survives.
+
+```csharp
+using UnityEngine;
+
+public sealed class GameManager : MonoBehaviour
+{
+    public static GameManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+}
+```
+
+This is a minimal scene-local example, not a complete cross-scene service. It rejects duplicates and clears its own static reference when destroyed. It does not call `DontDestroyOnLoad`, so scene changes may intentionally replace the manager. If persistence is required, plan scene ownership and initialization order first; adding `DontDestroyOnLoad` alone does not settle duplicate creation.
+
+## When a reference is clearer
+
+If only a few objects use the service, a serialized reference or constructor-injected plain C# service makes the dependency visible. A scene can own one manager without making it globally reachable. For shared data that is not itself a running service, a `ScriptableObject` asset may fit better. None of these choices is automatically superior; the difference is where the dependency and lifetime are expressed.
+
+<Key>“Only one instance” is an invariant to enforce and test across scenes, not a result of writing `static`.</Key>
+
+Before introducing global access, ask what happens when a scene is loaded twice, tests run in a different order, or a component accesses the service before initialization. Those cases reveal whether the convenience is worth the hidden coupling.
+
+### References
+
+- [Unity Scripting API: MonoBehaviour.Awake](https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html)
+- [Unity Scripting API: Object.DontDestroyOnLoad](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html)

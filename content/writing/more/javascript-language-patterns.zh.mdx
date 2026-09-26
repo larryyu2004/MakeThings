@@ -1,0 +1,35 @@
+# 沿着 JavaScript 事件路径追踪一次点击
+
+我的 JavaScript 旧笔记收集了语法、原型、Promise、数组和事件。事件示例最适合整理成一篇短文章，因为它回答了一个实际问题：**为什么点击一个按钮会运行多个元素上的处理函数？**
+
+## 点击有传播路径
+
+把下面的完整示例粘贴到空白 HTML 文件中。点击按钮后，控制台会依次输出外层的捕获监听器、按钮监听器和外层的冒泡监听器。
+
+```html
+<div id="outer"><button id="inner">打开</button></div>
+<script>
+  const outer = document.querySelector("#outer");
+  const inner = document.querySelector("#inner");
+  outer.addEventListener("click", () => console.log("capture"), { capture: true });
+  inner.addEventListener("click", () => console.log("target"));
+  outer.addEventListener("click", () => console.log("bubble"));
+</script>
+```
+
+事件在捕获阶段沿祖先路径向目标传播，到达目标后，若该事件类型会冒泡，就再沿祖先路径向外传播。`event.target` 是事件最初发生的元素，`event.currentTarget` 是当前正在运行监听器的元素。列表或菜单把监听器放在容器上时，这个区别尤其重要。
+
+## 委托事件，而不制造意外行为
+
+假设一个菜单含有许多按钮。容器监听器可以检查 `event.target.closest("button[data-action]")`，确认找到的按钮属于该容器，再读取 `dataset.action`。以后添加的新按钮也能使用同一个监听器。这就是事件委托：它利用传播路径，而不是在每个按钮上单独安装监听器。
+
+`stopPropagation()` 阻止事件继续沿路径传播，却不会取消浏览器的默认动作。`preventDefault()` 可以取消可取消的默认动作，例如打开链接，却不会阻止其他监听器接收事件。应只在明确的交互规则需要时使用它们。无差别地阻断传播可能破坏页面上层的其他控件。
+
+<Key>分别追踪事件目标、当前监听器和默认动作；它们回答的是三个不同的排查问题。</Key>
+
+回调稍后运行时，也要注意时间安排：Promise 的回调会作为微任务运行，而用户点击通过事件任务进入。时间顺序需要单独分析；传播路径只解释事件经过哪里，并不决定所有异步回调何时运行。
+
+### 参考资料
+
+- [DOM 标准：事件派发](https://dom.spec.whatwg.org/#concept-event-dispatch)
+- [MDN：事件冒泡](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Event_bubbling)

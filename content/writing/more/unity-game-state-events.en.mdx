@@ -1,0 +1,41 @@
+# Let game state notify the UI
+
+A game screen needs to know whether it should show “ready,” a countdown, active play, or a result. My Unity notes put the state machine in a manager and raised an event when the state changed. The useful idea is separating **who decides the state** from **who presents it**. This article describes that pattern, not a claim about a particular shipped game.
+
+## Make transitions explicit
+
+Represent the states as a closed set and send one notification after a transition. The UI can subscribe once and render from the current state instead of polling every frame. This fragment shows the contract; surrounding input, timers, and UI components are project-specific.
+
+```csharp
+using System;
+
+public enum GameState { Waiting, Countdown, Playing, GameOver }
+
+public sealed class GameFlow
+{
+    public GameState State { get; private set; } = GameState.Waiting;
+    public event Action<GameState> StateChanged;
+
+    public void TransitionTo(GameState next)
+    {
+        if (State == next) return;
+        State = next;
+        StateChanged?.Invoke(State);
+    }
+}
+```
+
+The example intentionally does not decide which transitions are legal. A real game should validate those rules in one place, such as permitting `Waiting → Countdown → Playing → GameOver`, and should document what restarting means. The UI should also render once when it first subscribes; events describe changes, not the initial snapshot.
+
+## Subscribe for the same lifetime as the view
+
+For a Unity `MonoBehaviour` view, subscribe in `OnEnable` and unsubscribe in `OnDisable`. An event handler can receive the new state and choose the appropriate panel. If the view misses a notification while disabled, rendering the current state again when enabled prevents stale UI. The state owner remains responsible for transitions; the view does not change state just to fix its own appearance.
+
+Pausing is related but separate. Setting `Time.timeScale = 0` pauses scaled time progression and affects physics scheduling, but it is not a universal “freeze everything” command: unscaled time and some UI activity continue. Model paused status explicitly and notify the view, then decide which timers use scaled or unscaled time. Restoring the previous time scale may be necessary if another system had changed it.
+
+<Key>State events reduce repeated polling, but a view still needs an initial snapshot and a clear subscription lifetime.</Key>
+
+### References
+
+- [Unity Scripting API: Time.timeScale](https://docs.unity3d.com/ScriptReference/Time-timeScale.html)
+- [Unity Manual: order of execution for event functions](https://docs.unity3d.com/Manual/ExecutionOrder.html)

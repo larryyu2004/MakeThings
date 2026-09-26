@@ -1,0 +1,31 @@
+# Designing with Tailwind utilities, not class collections
+
+My older Tailwind note was a single dashboard header. It showed useful utilities but left the design decisions implicit. A utility class usually describes one styling concern; composing many of them can make spacing, state, and responsive behavior visible near the markup. The tradeoff is that the markup can become difficult to scan unless the team agrees on reusable patterns.
+
+## Read the intent at each width
+
+This illustrative card stacks its content by default and places it in a row at the `sm` breakpoint:
+
+```html
+<article class="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
+  <div class="min-w-0 flex-1">
+    <h2 class="font-semibold">Project name</h2>
+    <p class="text-sm text-slate-600">A short description.</p>
+  </div>
+  <a class="rounded bg-slate-900 px-3 py-2 text-white hover:bg-slate-700 focus-visible:outline-2" href="/projects">Open</a>
+</article>
+```
+
+`flex-col` is the base layout. `sm:flex-row` changes direction from the small breakpoint upward. The hover and focus variants address different input modes; a hover treatment should not be the only visible interaction state. The exact colors and sizes are examples, not evidence of a finished design. Test long titles, translated text, and keyboard focus at actual viewport widths.
+
+## Establish a vocabulary
+
+Repeated values can belong in theme tokens, while repeated markup can be extracted into a component when it has a stable responsibility. That is different from creating a component for every combination of three classes. Keep semantic HTML first: a link navigates, a button performs an action, and the utility list only determines presentation. For unusual one-off values, ask whether they express a real design requirement before adding an arbitrary value.
+
+Tailwind does not decide hierarchy or accessibility for us. It makes the chosen CSS constraints quick to express. The useful outcome is a page whose responsive and interactive behavior can be explained from a small set of consistent rules, not the shortest stylesheet.
+
+### References
+
+- [Tailwind: styling with utility classes](https://tailwindcss.com/docs/styling-with-utility-classes)
+- [Tailwind: responsive design](https://tailwindcss.com/docs/responsive-design)
+- [Tailwind: theme variables](https://tailwindcss.com/docs/theme)

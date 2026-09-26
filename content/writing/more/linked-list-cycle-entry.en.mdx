@@ -1,0 +1,34 @@
+# Why two runners find a cycle entrance
+
+[LeetCode 142](https://leetcode.com/problems/linked-list-cycle-ii/) asks for the node where a linked list enters a cycle, or `nullptr` if there is none. A visited-node set would work but use linear space. Floyd's two-runner method needs only two pointers and a distance argument.
+
+## First detect a cycle
+
+Start `slow` and `fast` at the head. Move `slow` one link and `fast` two links each round. If `fast` reaches a null link, the list ends. If the pointers meet, a cycle exists: once both are inside it, their relative distance changes by one each round modulo the cycle length, so they must eventually coincide.
+
+## Then locate the entrance
+
+Let the distance from head to entrance be `a`, the distance from entrance to meeting point be `b`, and the remaining cycle distance be `c`. At the meeting, slow has travelled `a + b`; fast has travelled twice as far. Their distance difference is a whole number `k` of cycles: `a + b = k(b + c)`. Thus `a = k(b + c) - b`, which is congruent to `c` modulo the cycle length. A pointer starting at head and one starting at the meeting point therefore reach the entrance together if both advance one link at a time.
+
+```cpp
+// LeetCode supplies ListNode with a next pointer.
+ListNode* detectCycle(ListNode* head) {
+    ListNode* slow = head;
+    ListNode* fast = head;
+    while (fast && fast->next) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) {
+            ListNode* fromHead = head;
+            while (fromHead != slow) {
+                fromHead = fromHead->next;
+                slow = slow->next;
+            }
+            return fromHead;
+        }
+    }
+    return nullptr;
+}
+```
+
+An empty list or a single node without a self-loop returns null; a single self-loop returns that node. The list is never modified. Both phases take `O(n)` time overall and `O(1)` extra space. This direct proof also avoids the old draft's extra “anchor” state and the difficult-to-check movement tied to it.

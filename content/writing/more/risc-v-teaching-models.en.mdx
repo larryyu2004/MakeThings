@@ -1,0 +1,22 @@
+# Separating RISC-V rules from teaching models
+
+My original RISC-V notes mixed facts about an instruction set, a particular processor pipeline, and the xv6 teaching kernel. Those are related, but they are not interchangeable. Keeping them apart makes a systems explanation more trustworthy.
+
+## Architecture is not one processor
+
+RISC-V defines instruction encodings and architectural behavior. A five-stage fetch/decode/execute/memory/write-back pipeline is a common teaching design, not a requirement imposed on every RISC-V implementation. Different processors can schedule or combine work differently while implementing the same architecture.
+
+Likewise, a 64-bit address space does not imply that each instruction occupies eight bytes. Base RISC-V instructions commonly use 32-bit encodings, while the compressed extension permits 16-bit encodings. The next program counter depends on instruction length and control flow; branches, traps, and returns can select a nonsequential address.
+
+## Kernel policy is another layer
+
+Xv6 uses RISC-V page tables to translate virtual addresses. A fault reports that an access cannot proceed under the current mapping and permissions. What happens next belongs to kernel policy: a valid lazy-allocation fault might allocate a page; an invalid access might terminate the process. Copy-on-write and lazy allocation depend on the specific lab or modified checkout, rather than being automatic consequences of virtual memory.
+
+<Key>When explaining a systems behavior, name its owner: the ISA, a processor implementation, the xv6 version, or a project extension.</Key>
+
+This separation also helps when reading performance results. An instruction-set description cannot by itself predict a processor's pipeline cost, and a page-table mechanism does not tell us whether a kernel implements swapping.
+
+### References
+
+- [RISC-V Ratified Specifications](https://riscv.org/specifications/ratified/)
+- [MIT: xv6 book for RISC-V](https://pdos.csail.mit.edu/6.828/2025/xv6/book-riscv-rev5.pdf)

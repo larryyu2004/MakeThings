@@ -1,0 +1,34 @@
+# 回溯去重应该发生在同一层
+
+[LeetCode 491](https://leetcode.com/problems/non-decreasing-subsequences/) 要求找出长度至少为二、互不重复的非递减子序列。子序列必须保持原输入顺序，但可以跳过元素。重复数值带来一个陷阱：同一递归层选择不同位置的相同值，可能生成完全一样的结果。
+
+## 分清两条规则
+
+当前路径保证顺序和非递减：候选值的下标必须靠后，数值不能小于路径末尾。每次递归都新建一个 `used` 集合，只排除**同一层的兄弟选择**。不能全局共用它：在 `[4, 6, 7, 7]` 中，某条路径可以连续选择两个 `7`，形成 `[4, 7, 7]`；但同一层先选择另一个 `7` 只会重复生成 `[4, 7]`。
+
+```cpp
+std::vector<std::vector<int>> findSubsequences(
+    const std::vector<int>& nums) {
+    std::vector<std::vector<int>> answer;
+    std::vector<int> path;
+    auto visit = [&](auto&& self, int start) -> void {
+        if (path.size() >= 2) answer.push_back(path);
+        std::unordered_set<int> used;
+        for (int i = start; i < static_cast<int>(nums.size()); ++i) {
+            if ((!path.empty() && nums[i] < path.back()) ||
+                !used.insert(nums[i]).second) continue;
+            path.push_back(nums[i]);
+            self(self, i + 1);
+            path.pop_back();
+        }
+    };
+    visit(visit, 0);
+    return answer;
+}
+```
+
+对于 `[1, 2, 2]`，不同的合法结果包括一次 `[1, 2]` 和一次 `[1, 2, 2]`。不能先排序，否则原输入的子序列关系会改变；此方法直接保留原顺序。
+
+## 枚举的代价
+
+候选子序列数量可能呈指数级。若计入把路径复制到结果的成本，遍历时间可界定为 `O(n × 2^n)`。不计输出，递归路径、调用栈及多个同时存活的按层集合，在一般整数值场景下最多占 `O(n^2)` 辅助空间。旧稿写作 `O(n)`，遗漏了这些同时存活的集合。若利用题目限定的数值范围，在每层用定长数组替代集合，精确界限会变化，但仍需计算每层数组。

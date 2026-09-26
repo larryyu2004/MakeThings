@@ -1,0 +1,20 @@
+# Following data through a Razor Page
+
+An older Razor Pages note used `WebMatrix.Data`, inline database calls in a `.cshtml` file, and a claim that `Request.QueryString` reads POST form values. That last claim is incorrect: query parameters and form fields are different sources. Modern ASP.NET Core Razor Pages offers a clearer separation between a page's markup and its `PageModel` handlers.
+
+## Trace the request
+
+A GET request loads a page through `OnGet` or `OnGetAsync`. A submitted POST form is handled by `OnPost` or `OnPostAsync`, possibly with a named handler. The page model can receive validated input, call a data service or EF Core context, and return a page or redirect. The `.cshtml` file renders the resulting model. This flow makes it easier to ask which inputs came from the route, query string, or form rather than treating them as interchangeable.
+
+For a detail page, a route ID should identify which record to request. If it is missing or invalid, return an appropriate result before querying. If the record does not exist, return a not-found result. If it exists, authorization still has to be checked for that user. A search form is different: its terms may belong in query parameters so the result URL can be shared, but those terms still need validation and bounded results.
+
+## Writes need a deliberate boundary
+
+A create or edit POST should bind only permitted fields, validate the model state, and persist through an appropriate data access layer. After a successful write, redirecting to a GET page prevents an ordinary refresh from resubmitting the form. EF Core can provide async queries and change tracking, but the page still owns validation, authorization, and the user-facing outcome. For a destructive operation, display a confirmation and keep the action on POST rather than treating a GET link as deletion.
+
+The useful lesson from the old SQL examples is the need to trace where each value enters the request. The modern implementation should also use parameterized data access and limit returned rows. This article describes the flow; it does not claim that the old `WebMatrix.Data` snippets are current ASP.NET Core code.
+
+### References
+
+- [Microsoft: Razor Pages architecture](https://learn.microsoft.com/en-us/aspnet/core/razor-pages/)
+- [Microsoft: Razor Pages with EF Core CRUD](https://learn.microsoft.com/en-us/aspnet/core/data/ef-rp/crud)

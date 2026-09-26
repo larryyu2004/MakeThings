@@ -1,0 +1,20 @@
+# 跟随数据走过一个 Razor Page
+
+旧的 Razor Pages 笔记在 `.cshtml` 里直接调用 `WebMatrix.Data`，还把 `Request.QueryString` 说成读取 POST 表单值。这一点是错误的：查询参数与表单字段来自不同位置。现代 ASP.NET Core Razor Pages 则把页面标记与 `PageModel` 处理方法分得更清楚。
+
+## 追踪一次请求
+
+GET 请求由 `OnGet` 或 `OnGetAsync` 加载页面；提交的 POST 表单由 `OnPost` 或 `OnPostAsync` 处理，也可以使用具名处理方法。页面模型接收经过验证的输入，调用数据服务或 EF Core 上下文，然后返回页面或重定向。`.cshtml` 负责呈现结果。沿这条路径检查，才能分清哪些输入来自路由、查询字符串或表单，而不是把它们视为可互换的数据。
+
+详情页的路由 ID 用来标识要找的记录。ID 缺失或格式不正确时，应在查询前给出合适结果；记录不存在时返回未找到；记录存在也仍需检查当前用户是否有权访问。搜索表单则不同：把条件放进查询参数可以分享结果 URL，但输入仍要验证，结果数量也应受限。
+
+## 写入需要明确的边界
+
+创建或编辑的 POST 只应绑定允许修改的字段，验证模型状态，然后通过合适的数据访问层持久化。成功写入后重定向到 GET 页面，可以避免普通刷新再次提交表单。EF Core 可以提供异步查询与变更跟踪，但页面仍须负责验证、授权及面向用户的结果。删除等破坏性操作应显示确认，并由 POST 执行，而不是用一个 GET 链接直接删除。
+
+旧 SQL 示例留下的有用问题是：每个值到底从哪里进入请求？现代实现还应使用参数化数据访问并限制返回行数。本文解释的是数据流，不表示旧的 `WebMatrix.Data` 片段仍是当前 ASP.NET Core 的写法。
+
+### 参考资料
+
+- [Microsoft：Razor Pages 架构](https://learn.microsoft.com/en-us/aspnet/core/razor-pages/)
+- [Microsoft：Razor Pages 与 EF Core CRUD](https://learn.microsoft.com/en-us/aspnet/core/data/ef-rp/crud)

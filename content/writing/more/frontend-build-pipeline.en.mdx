@@ -1,0 +1,27 @@
+# What a frontend build pipeline is for
+
+My older frontend engineering note mixed package managers, polyfills, Babel, Sass, PostCSS, and a long Webpack configuration. Those are distinct tools, not mandatory steps in every project. The useful starting point is the problem each stage solves: turning source files into assets a target browser can load, while making the result repeatable.
+
+## Follow one import
+
+Imagine an entry module importing another module and a stylesheet. A bundler follows these imports to build a dependency graph, then emits assets. A transformation stage may convert syntax that the chosen target cannot parse. A separate polyfill may provide a missing runtime API. The distinction matters: compiling `?.` changes syntax; making `Array.prototype.flatMap` available requires runtime support where it is absent. Transforming the syntax alone cannot create that API.
+
+```js
+// source module: whether this works unmodified depends on the target runtime
+const title = response?.article?.title ?? "Untitled";
+const doubled = [1, 2].flatMap((value) => [value, value * 2]);
+```
+
+The old note proposed specific transforms for an old Node release. A current pipeline should instead declare supported browsers or runtimes and verify the generated output against those targets. Compatibility is a product requirement, not a list of packages copied from a tutorial.
+
+## Build output has a contract
+
+Useful output has clear entry points, predictable asset paths, and a deployable directory. Content hashes can help caches distinguish changed assets, but HTML and asset cache headers still need a coherent deployment policy. A successful build only proves that the compiler accepted the source; it does not prove a page works in the intended browser or that the assets are served from the correct base path.
+
+When debugging, inspect the first broken link in the chain: source import, transformation, emitted file, deployed URL, then browser console or network response. This is more reliable than adding another loader or plugin blindly. A framework may configure much of this pipeline, but the same questions still apply to its output.
+
+### References
+
+- [Webpack concepts and dependency graph](https://webpack.js.org/concepts/)
+- [MDN JavaScript compatibility](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- [MDN HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)

@@ -1,0 +1,32 @@
+# When a C++ value can be moved
+
+Copying a resource-owning object can be expensive. My old lvalue and rvalue notes tried to explain when C++ can reuse resources, but mixed value categories with rules such as “rvalues have no identity.” A safer question is: **what expression do I have, and what operations does its type support?**
+
+## Expressions, references, and names
+
+An lvalue expression identifies an object or function. A prvalue such as `std::string("new")` computes a value; an xvalue such as `std::move(name)` identifies an object whose resources may be reused. These are expression categories, not permanent labels attached to variables. A named variable is an lvalue expression even if its declared type is an rvalue reference.
+
+```cpp
+#include <string>
+#include <utility>
+
+std::string name = "Ada";
+std::string copy = name;             // name is an lvalue expression
+std::string moved = std::move(name); // std::move(name) is an xvalue
+name = "Grace";                      // assigning a new value is valid
+```
+
+`std::move` performs a cast. It does not itself transfer storage; a selected move constructor or assignment operator does that work. The state of a moved-from standard-library object remains valid but may be otherwise unspecified, so do not assume `name` is empty after the move. Nor does a move always occur: a `const` object often cannot use a move constructor that accepts a non-const rvalue reference.
+
+## Design the receiving API first
+
+Use `const T&` when a function only reads a value, `T&` when it modifies the caller's object, and `T` when it needs its own copy or can take a moved value. An explicit `T&&` can express a consuming operation, but it creates an ownership promise that the implementation must honor. In generic code, a deduced `T&&` is a forwarding reference; `std::forward<T>(value)` preserves the caller's expression category. Because `value` has a name, passing it without `forward` passes an lvalue.
+
+<Key>Moving is an option offered to the receiving operation, not a command that guarantees resource transfer.</Key>
+
+This distinction keeps performance reasoning honest: inspect the constructor selected by the type, then measure if avoiding a copy matters. Prefer clear ownership semantics over adding `std::move` everywhere, especially around return statements where it can interfere with copy elision.
+
+### References
+
+- [C++ working draft: value categories](https://eel.is/c++draft/basic.lval)
+- [C++ working draft: `std::move`](https://eel.is/c++draft/forward)

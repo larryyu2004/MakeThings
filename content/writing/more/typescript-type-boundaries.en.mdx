@@ -1,0 +1,53 @@
+# Keep untrusted values outside the TypeScript boundary
+
+My early TypeScript notes listed primitive types, assertions, interfaces, and generics. The most valuable connection between them is at an input boundary: a type annotation describes what the program expects, but it does not validate a value received at runtime.
+
+## `unknown` keeps the question open
+
+Consider JSON read from storage or an API. The parser returns a JavaScript value. Claiming `as Article` immediately silences the compiler without checking the shape. Start with `unknown`, then narrow it through runtime checks.
+
+```ts
+type Article = { slug: string; title: string };
+
+function isArticle(value: unknown): value is Article {
+  if (typeof value !== "object" || value === null) return false;
+  const record = value as Record<string, unknown>;
+  return typeof record.slug === "string" &&
+    typeof record.title === "string";
+}
+
+const parsed: unknown = JSON.parse('{"slug":"intro","title":"Hello"}');
+if (isArticle(parsed)) {
+  console.log(parsed.title);
+}
+```
+
+The cast to `Record<string, unknown>` only allows property inspection after the object check; the field tests provide the actual evidence. This guard checks two fields, not every possible rule: a real application might also reject empty strings, unknown keys, or duplicate slugs. `any` would let the code access properties without checks; `unknown` forces the decision to stay visible.
+
+## Model known states precisely
+
+Once input is validated, a discriminated union can describe the program's internal states:
+
+```ts
+type LoadState =
+  | { kind: "loading" }
+  | { kind: "ready"; article: Article }
+  | { kind: "error"; message: string };
+
+function label(state: LoadState): string {
+  switch (state.kind) {
+    case "loading": return "Loading";
+    case "ready": return state.article.title;
+    case "error": return state.message;
+  }
+}
+```
+
+The `kind` field lets TypeScript narrow each branch, so the ready-only `article` is not accidentally read while loading. When new states are added, an explicit exhaustive check with `never` can make missing branches a compile-time error.
+
+<Key>Validate at runtime once, then use the type system to keep the rest of the code honest.</Key>
+
+### References
+
+- [TypeScript Handbook: narrowing](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- [TypeScript Handbook: everyday types](https://www.typescriptlang.org/docs/handbook/2/everyday-types.html)

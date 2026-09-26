@@ -1,0 +1,46 @@
+# 二分查找先约定区间
+
+二分查找最容易出错的地方，是循环条件与边界更新采用了不同的区间定义。先确定哪些下标仍可能是答案，再让每次更新都维持这个约定，并至少排除一个候选位置。
+
+## 查找一个确切值
+
+对于有序数组，`[left, right]` 包含两端。初始化为 `right = n - 1`；只有在 `left > right` 时，候选区间才为空。如果中间值太小，就排除 `mid` 及其左侧；如果太大，就排除 `mid` 及其右侧。
+
+```cpp
+int findIndex(const std::vector<int>& a, int target) {
+    int left = 0, right = static_cast<int>(a.size()) - 1;
+    while (left <= right) {
+        int mid = left + (right - left) / 2;
+        if (a[mid] == target) return mid;
+        if (a[mid] < target) left = mid + 1;
+        else right = mid - 1;
+    }
+    return -1;
+}
+```
+
+空数组也安全：`right` 一开始就是 `-1`，循环不会读取元素。循环结束时有 `left == right + 1`。如果数组里有重复值，找到的位置不一定是第一个。
+
+## 查找边界
+
+要找第一个**大于等于**目标值的元素，可以采用左闭右开区间 `[left, right)`。`left == right` 表示区间为空。如果所有元素都较小，答案可以是 `n`。
+
+```cpp
+int lowerBound(const std::vector<int>& a, int target) {
+    int left = 0, right = static_cast<int>(a.size());
+    while (left < right) {
+        int mid = left + (right - left) / 2;
+        if (a[mid] < target) left = mid + 1;
+        else right = mid;
+    }
+    return left;
+}
+```
+
+对于 `[1, 2, 2, 4]`，查找 `2` 返回 `1`，查找 `3` 返回 `3`。关键在于 `right = mid` 保留了可能的答案；若写成 `mid - 1`，可能把答案丢掉。两个版本都是 `O(log n)` 时间、`O(1)` 额外空间。前提是输入已排序，不能直接用在任意无序数组上。
+
+## 动手前的检查
+
+先写下区间定义、循环条件、结束后指针的含义。再用空数组、单元素、重复值、比所有值都小或都大的目标测试。这些小例子往往比一个很长的随机数组更快发现边界错误。
+
+[对应题目：LeetCode 704](https://leetcode.com/problems/binary-search/)

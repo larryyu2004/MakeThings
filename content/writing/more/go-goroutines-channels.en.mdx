@@ -1,0 +1,45 @@
+# Coordinate Go goroutines with channels
+
+Starting a goroutine is easy; deciding when it finishes and who owns its output is harder. My older Go notes described internal scheduler queues in detail, even though those implementation details are not a sound contract for application code. A more useful contract comes from channel operations and the lifetime of the calling function.
+
+## A worker with an explicit ending
+
+This complete program sends three values and then closes the channel. The producer owns the send side and knows when no more values will arrive. The consumer ranges until all sent values are received and the channel is closed.
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    numbers := make(chan int)
+    go func() {
+        defer close(numbers)
+        for _, n := range []int{2, 4, 6} {
+            numbers <- n
+        }
+    }()
+
+    for n := range numbers {
+        fmt.Println(n)
+    }
+}
+```
+
+The receive synchronizes with a send on this unbuffered channel. The receiver waits until a value is available, and the sender waits until a receiver is ready. A buffered channel changes the waiting condition: sends can proceed while capacity remains, and receives can proceed while values remain. Capacity is a queue bound, not a guarantee that the consumer has processed an item.
+
+## Ownership, cancellation, and shutdown
+
+Only the sending side should close a channel when it knows that sending is finished. Closing is a signal that no more values will be sent, not a general “free this resource” operation. Sending on a closed channel panics. After buffered values are consumed, a receive from a closed channel returns the zero value with `ok == false`.
+
+`main` returning ends the program even if other goroutines have unfinished work. Waiting on the output range makes the lifetime explicit in this example. For a worker that can be cancelled early, pass a `context.Context` and select between work and `ctx.Done()`; also define who drains or abandons the output so no sender remains blocked.
+
+<Key>Design the stop condition before starting a goroutine. A channel connects data flow, but it does not automatically solve cancellation or ownership.</Key>
+
+Avoid reasoning from a fixed scheduling order or a supposed universal ten-millisecond preemption rule. `GOMAXPROCS` controls the maximum number of CPUs executing Go code simultaneously; it is not a rule to divide the machine's core count by two.
+
+### References
+
+- [Go language specification: channels and range](https://go.dev/ref/spec)
+- [Go blog: pipelines and cancellation](https://go.dev/blog/pipelines)
+- [Go runtime documentation: GOMAXPROCS](https://pkg.go.dev/runtime#GOMAXPROCS)

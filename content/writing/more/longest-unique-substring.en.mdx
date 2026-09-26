@@ -1,0 +1,33 @@
+# The sliding window that forgets duplicates
+
+In [LeetCode 3](https://leetcode.com/problems/longest-substring-without-repeating-characters/), a substring must be contiguous. Testing every start and end independently repeats almost all the same work. A sliding window keeps the current substring valid while moving its right edge forward.
+
+## Keep one invariant
+
+Maintain `[left, right]` so that no character appears twice inside it. Add `s[right]` to a frequency map. If that character now appears twice, remove characters from the left until its count returns to one. Only then is the window valid and its length eligible for the answer.
+
+```cpp
+int lengthOfLongestSubstring(const std::string& s) {
+    std::unordered_map<char, int> count;
+    int left = 0, best = 0;
+    for (int right = 0; right < static_cast<int>(s.size()); ++right) {
+        ++count[s[right]];
+        while (count[s[right]] > 1) {
+            --count[s[left]];
+            ++left;
+        }
+        best = std::max(best, right - left + 1);
+    }
+    return best;
+}
+```
+
+For `abba`, the first two letters form `ab`. Adding the second `b` makes the window invalid. Moving `left` past the first `b` leaves `b`, and the later `a` makes `ba`. The answer remains `2`; blindly moving `left` back to an earlier occurrence would break the invariant.
+
+## Why it is linear
+
+The nested `while` does not make the algorithm quadratic. `right` advances at most `n` times and `left` also advances at most `n` times. Total time is `O(n)`. The map holds at most the number of distinct characters in the current window, so extra space is `O(min(n, alphabet size))`, often written `O(k)`. Calling it `O(1)` needs an explicit fixed alphabet assumption.
+
+## Character boundary
+
+This C++ version treats each `char` as a byte. That matches the usual byte-oriented judge input but does not count Unicode grapheme clusters as users perceive them. For general text, decide whether “character” means bytes, code points, or grapheme clusters before choosing the representation. The algorithmic invariant stays the same; the iteration unit changes.

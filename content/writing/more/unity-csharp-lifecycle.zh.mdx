@@ -1,0 +1,43 @@
+# 把 Unity 工作放到合适的回调中
+
+Unity 组件提供了许多熟悉的回调，但只背下名字还不足以决定代码该写在哪里。旧 C# 笔记依次列出了 `Awake`、`Start`、`Update` 和 `FixedUpdate`。真正有用的问题是：**哪些工作只做一次，哪些跟随画面帧，哪些跟随物理步进？**
+
+## 初始化与启用
+
+`Awake` 适合组件自身的早期准备，例如缓存同一对象上的引用。组件启用且对象处于活动状态时会执行 `OnEnable`，适合订阅事件；对应地在 `OnDisable` 取消订阅，让被禁用的监听者不再接收通知。`Start` 在启用脚本首次帧更新前运行，可以承担不必在 `Awake` 中完成的初始化。
+
+```csharp
+using UnityEngine;
+
+public sealed class InputListener : MonoBehaviour
+{
+    [SerializeField] private InputSource source;
+
+    private void OnEnable()
+    {
+        if (source != null) source.Pressed += HandlePress;
+    }
+
+    private void OnDisable()
+    {
+        if (source != null) source.Pressed -= HandlePress;
+    }
+
+    private void HandlePress() => Debug.Log("Pressed");
+}
+```
+
+这里的 `InputSource` 是示意性的项目组件，需要另行定义带有 `Pressed` 事件的类才能编译。关键在于订阅和取消订阅成对出现。不要假设场景里不同对象的 `Awake` 必然按照某个固定顺序执行，除非场景和执行顺序设置确实提供了保证。
+
+## 画面帧与物理步进
+
+`Update` 跟随画面帧，适合轮询输入或更新不属于物理模拟的表现。`FixedUpdate` 跟随固定时间步，适合物理相关工作。两次画面帧之间，固定更新可能执行零次、一次或多次，所以不能把它理解为“每帧恰好一次”。`LateUpdate` 在各组件的 `Update` 后执行，适合让摄像机跟随本帧已移动的目标。
+
+需要按游戏时间计算持续时长时，可以在 `Update` 累加 `Time.deltaTime`；固定步进的物理计算则使用相应固定时间步。这些回调都不保证精确的现实时间送达。`OnDestroy` 用于销毁时清理，但禁用后就应该停止的事件订阅要在 `OnDisable` 中解除。
+
+<Key>先看工作的依赖与时间尺度，再选择回调；事件订阅与清理要对称。</Key>
+
+### 参考资料
+
+- [Unity 手册：事件函数执行顺序](https://docs.unity3d.com/Manual/ExecutionOrder.html)
+- [Unity 脚本 API：MonoBehaviour](https://docs.unity3d.com/ScriptReference/MonoBehaviour.html)

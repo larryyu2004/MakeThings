@@ -1,0 +1,45 @@
+# 用 channel 协调 Go goroutine
+
+启动 goroutine 很容易；判断它何时结束、谁负责处理输出，则需要先想清楚。旧 Go 笔记详细描述了调度器内部队列，但这些实现细节不适合作为应用程序的稳定约定。更可靠的约定来自 channel 操作以及调用函数的生命周期。
+
+## 有明确结束条件的工作者
+
+下面的完整程序发送三个值，然后关闭 channel。生产者拥有发送端，也知道何时不会再有新值。消费者一直读取，直到已发送的值读完且 channel 关闭。
+
+```go
+package main
+
+import "fmt"
+
+func main() {
+    numbers := make(chan int)
+    go func() {
+        defer close(numbers)
+        for _, n := range []int{2, 4, 6} {
+            numbers <- n
+        }
+    }()
+
+    for n := range numbers {
+        fmt.Println(n)
+    }
+}
+```
+
+无缓冲 channel 上的发送与接收会同步：接收者等待值出现，发送者等待接收者准备好。缓冲 channel 改变的是等待条件：还有容量时发送可继续，还有值时接收可继续。容量只是队列上限，并不保证消费者已经处理了某项工作。
+
+## 所有权、取消与结束
+
+知道“以后不会再发送”的发送方应负责关闭 channel。关闭是在通知接收方没有新值，不是通用的资源释放操作。向已关闭的 channel 发送会导致 panic。已缓冲的值读完后，继续从关闭的 channel 接收会得到该类型的零值，并且 `ok == false`。
+
+即使其他 goroutine 的工作尚未完成，`main` 返回也会结束程序。上面的 `range` 读取让等待关系变得明确。如果工作者需要提前取消，应传入 `context.Context`，在工作与 `ctx.Done()` 之间选择；同时决定谁继续读取或放弃输出，避免发送者永远阻塞。
+
+<Key>启动 goroutine 前先设计停止条件。channel 能连接数据流，却不会自动解决取消和所有权问题。</Key>
+
+不要依赖固定调度顺序，也不要把“每十毫秒必然抢占”当作通用规则。`GOMAXPROCS` 控制同时执行 Go 代码的 CPU 数量上限，并不存在必须设成核心数一半的原则。
+
+### 参考资料
+
+- [Go 语言规范：channel 与 range](https://go.dev/ref/spec)
+- [Go 博客：流水线与取消](https://go.dev/blog/pipelines)
+- [Go 运行时文档：GOMAXPROCS](https://pkg.go.dev/runtime#GOMAXPROCS)

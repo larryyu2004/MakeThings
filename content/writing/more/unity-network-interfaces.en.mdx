@@ -1,0 +1,22 @@
+# Choosing a local address for Unity discovery
+
+A multiplayer client needs an address it can reach, not merely an address the host owns. The older Unity notes explored interface enumeration and discovery messages. Their lasting lesson is that a laptop or phone can have several network interfaces at once: Wi-Fi, hotspot, VPN, cellular, loopback, and virtual adapters.
+
+## What discovery can tell us
+
+A host can advertise a game port over the local network. If a client receives that packet, the packet's sender address is often a better connection candidate than an arbitrary address selected from the host's interface list. The client still needs to validate the advertisement and attempt the actual game transport connection. Successful discovery alone proves neither reachability of the game port nor a completed session.
+
+The address can change when a device moves between networks. A hotspot may also route or isolate clients differently from a shared Wi-Fi access point. For that reason, hard-coding a familiar private subnet or picking the first IPv4 address is fragile.
+
+## A safer workflow
+
+Start the game's listener before advertising. Keep the discovery payload small: a protocol version, session identifier, display name, and game port are usually enough. On the client, expire old candidates and show separate states for searching, found, connecting, and connected. Offer manual address entry when local broadcast does not reach peers.
+
+<Key>The network interface is a candidate source; the transport connection is the evidence that the chosen route works.</Key>
+
+This is an architectural sketch rather than a drop-in Unity API recipe. The socket permissions and broadcast behavior must be tested on each target platform and network configuration.
+
+### References
+
+- [Unity Netcode: Migrating from UNet](https://docs-multiplayer.unity3d.com/netcode/1.8.1/installation/upgrade_from_UNet/)
+- [Apple: Local Network Privacy](https://developer.apple.com/documentation/technotes/tn3179-understanding-local-network-privacy)

@@ -1,0 +1,50 @@
+# Make missing values explicit in Swift
+
+The Swift notes I kept while learning iOS cover many language features. Two of them fit together particularly well: optionals describe an absent value, while protocols describe the behavior a caller needs. Together they make a boundary between uncertain input and predictable application code.
+
+## An optional is a decision point
+
+`Int("42")` produces `Int?` because parsing can fail. Force unwrapping with `!` assumes success and traps if the value is `nil`. Optional binding makes the failure branch visible instead.
+
+```swift
+func describeCount(_ text: String) -> String {
+    guard let count = Int(text), count >= 0 else {
+        return "Enter a non-negative whole number"
+    }
+    return "Count: \(count)"
+}
+
+print(describeCount("42"))   // Count: 42
+print(describeCount("many")) // validation message
+```
+
+The `guard` also narrows `count` to a non-optional integer for the rest of the function. If a missing value is a valid result, return an optional and let the caller decide. If it represents a detailed failure, a throwing function or a `Result` may communicate more than `nil` alone. Optional chaining, such as `user?.profile?.name`, is useful when absence should flow through an access path, but it should not hide an error that needs handling.
+
+## Describe the capability you need
+
+A protocol can state what an output sink must do without tying a function to one class. This complete example uses a small protocol and a concrete console sink:
+
+```swift
+protocol CountSink {
+    func show(_ message: String)
+}
+
+struct ConsoleSink: CountSink {
+    func show(_ message: String) { print(message) }
+}
+
+func present(_ text: String, to sink: any CountSink) {
+    sink.show(describeCount(text))
+}
+
+present("7", to: ConsoleSink())
+```
+
+The protocol does not itself decide how input is validated; the parsing function does. It lets the presenter depend on the one behavior it needs. A UI implementation or test sink could conform later without changing `present`.
+
+<Key>Handle uncertainty where data enters; use protocols to keep the next layer focused on behavior rather than a concrete type.</Key>
+
+### References
+
+- [The Swift Programming Language: The Basics](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/thebasics/)
+- [The Swift Programming Language: Protocols](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/)

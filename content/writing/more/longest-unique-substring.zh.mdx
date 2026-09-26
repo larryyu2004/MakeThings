@@ -1,0 +1,33 @@
+# 用滑动窗口消除重复字符
+
+[LeetCode 3](https://leetcode.com/problems/longest-substring-without-repeating-characters/) 要求的是连续子串。若独立检查每个起点和终点，会反复扫描相同内容。滑动窗口在右端前进时，持续维护一个合法子串。
+
+## 维持一个不变量
+
+令 `[left, right]` 中的字符都不重复。先把 `s[right]` 加入频率表；如果它的出现次数变成两次，就从左端逐个移出字符，直到它的次数回到一次。只有窗口重新合法，才能用其长度更新答案。
+
+```cpp
+int lengthOfLongestSubstring(const std::string& s) {
+    std::unordered_map<char, int> count;
+    int left = 0, best = 0;
+    for (int right = 0; right < static_cast<int>(s.size()); ++right) {
+        ++count[s[right]];
+        while (count[s[right]] > 1) {
+            --count[s[left]];
+            ++left;
+        }
+        best = std::max(best, right - left + 1);
+    }
+    return best;
+}
+```
+
+以 `abba` 为例，前两个字符形成 `ab`。加入第二个 `b` 后窗口不合法，左端越过第一个 `b`，剩下 `b`；再加入最后的 `a` 得到 `ba`。答案为 `2`。如果只是根据旧出现位置随意回移左端，就会破坏窗口约束。
+
+## 为什么仍然是线性时间
+
+内层 `while` 不意味着平方复杂度。`right` 最多前进 `n` 次，`left` 总共也最多前进 `n` 次，所以时间是 `O(n)`。频率表最多存储当前窗口中的不同字符，额外空间为 `O(min(n, 字符集大小))`，也可记为 `O(k)`。只有明确采用固定大小字符集时，才能写成 `O(1)`。
+
+## “字符”的边界
+
+这段 C++ 代码以字节 `char` 为单位，符合常见判题输入，却不能把用户感知的 Unicode 字素簇当作一个字符。处理任意文本时，先确定目标单位是字节、码点还是字素簇。不变量仍然适用，改变的是字符串的遍历方式。

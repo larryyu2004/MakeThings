@@ -1,0 +1,30 @@
+# Reading a Bootstrap layout from the outside in
+
+The old Bootstrap file contained only a heading, so this is a compact primer rather than a description of work I already built. Bootstrap is useful when a team wants a ready-made layout vocabulary. The first decision is whether its container, grid, and spacing conventions fit the page, not which class can be added fastest.
+
+## Container, row, column
+
+The grid is read from the outside in. A container bounds and pads the content. A row groups columns. Column classes set how much of the twelve-column row an item occupies at different widths. In this illustrative fragment, cards are full width by default, two across from the medium breakpoint, and three across from the large breakpoint:
+
+```html
+<div class="container py-4">
+  <div class="row g-3">
+    <article class="col-12 col-md-6 col-lg-4">First</article>
+    <article class="col-12 col-md-6 col-lg-4">Second</article>
+    <article class="col-12 col-md-6 col-lg-4">Third</article>
+  </div>
+</div>
+```
+
+`g-3` sets the gutter, the spacing between columns. The `md` and `lg` classes apply at those breakpoints and above; they are not separate fixed-width layouts. On a narrow screen only `col-12` applies. A responsive check must therefore look at the actual content at intermediate widths, not merely at one phone and one desktop size.
+
+## Components are a design choice
+
+Bootstrap also supplies component styles and optional JavaScript behavior. Those defaults can speed up a prototype, but they introduce a visual language and CSS footprint. If a project already has a distinct design system, use Bootstrap selectively or choose native CSS instead of fighting its defaults across every element. When using an interactive component, follow its documented markup and test keyboard behavior rather than assuming the grid classes provide accessibility automatically.
+
+The takeaway is to treat Bootstrap as a consistent set of layout and component conventions. A class list should explain a deliberate layout at each relevant width; it is not a substitute for checking the rendered page.
+
+### References
+
+- [Bootstrap 5.3 grid system](https://getbootstrap.com/docs/5.3/layout/grid/)
+- [Bootstrap 5.3 breakpoints](https://getbootstrap.com/docs/5.3/layout/breakpoints/)

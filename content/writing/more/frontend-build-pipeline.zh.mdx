@@ -1,0 +1,27 @@
+# 前端构建流水线究竟解决什么问题
+
+我旧的前端工程笔记把包管理器、polyfill、Babel、Sass、PostCSS 和一长段 Webpack 配置放在一起。但它们各自解决不同问题，也不是每个项目都必须经过的步骤。更好的起点是：怎样把源码变成目标浏览器能加载的资源，并让结果可重复？
+
+## 跟随一次导入
+
+设想入口模块导入另一个模块和样式表。打包器沿导入关系建立依赖图，再输出资源。转换步骤可能改写目标运行环境无法解析的语法；单独的 polyfill 可以在缺失时补上运行时 API。两者不能混为一谈：编译 `?.` 处理的是语法；在不支持的环境提供 `Array.prototype.flatMap`，处理的是运行时能力。只改写语法不会凭空生成这个 API。
+
+```js
+// 源模块：能否原样运行取决于目标环境
+const title = response?.article?.title ?? "Untitled";
+const doubled = [1, 2].flatMap((value) => [value, value * 2]);
+```
+
+旧笔记为早期 Node 版本建议了特定转换。现在更合理的做法是先明确支持哪些浏览器或运行时，再针对这些目标检查产物。兼容性是一项产品要求，而不是从教程复制一份依赖清单。
+
+## 构建产物也有契约
+
+可靠的产物应有明确入口、可预测的资源路径与可部署目录。内容哈希有助于缓存区分变更资源，但 HTML 与静态资源的缓存头仍需要一起设计。构建成功只证明编译器接受了源码，不能证明页面在目标浏览器正常工作，也不能证明部署路径正确。
+
+排错时，我会沿链条找到最早断裂的位置：源码导入、转换、输出文件、部署 URL，最后看浏览器控制台或网络响应。这比盲目再加一个 loader 或插件可靠。框架可能代为配置其中许多步骤，但对构建产物仍应提出同样的问题。
+
+### 参考资料
+
+- [Webpack 核心概念与依赖图](https://webpack.js.org/concepts/)
+- [MDN JavaScript 兼容性资料](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+- [MDN HTTP 缓存](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)

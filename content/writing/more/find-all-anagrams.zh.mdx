@@ -1,0 +1,33 @@
+# 异位词对应一个定长窗口
+
+[LeetCode 438](https://leetcode.com/problems/find-all-anagrams-in-a-string/) 要找出 `s` 中所有起点，使对应子串是 `p` 的一种排列。子串长度必须恰好等于 `p.size()`，所以定长窗口比“字符超量后不断缩小”的变长窗口更直接。
+
+## 比较频率，而不是顺序
+
+对于小写英文字母，用两个长度为 26 的数组记录模式串与当前窗口的频率。加入右侧新字符；窗口达到目标长度后比较数组，相等就记录起点；继续前进时移出左侧字符。字母的顺序无关紧要，各字母的出现次数必须一致。
+
+```cpp
+std::vector<int> findAnagrams(const std::string& s,
+                              const std::string& p) {
+    std::vector<int> answer;
+    if (p.empty() || p.size() > s.size()) return answer;
+    std::array<int, 26> need{}, have{};
+    for (char c : p) ++need[c - 'a'];
+    int width = static_cast<int>(p.size());
+    for (int right = 0; right < static_cast<int>(s.size()); ++right) {
+        ++have[s[right] - 'a'];
+        if (right >= width) --have[s[right - width] - 'a'];
+        if (right + 1 >= width && have == need)
+            answer.push_back(right - width + 1);
+    }
+    return answer;
+}
+```
+
+当 `s = "cbaebabacd"`、`p = "abc"` 时，`"cba"` 与 `"bac"` 都匹配，答案是 `[0, 6]`。当 `s = "abab"`、`p = "ab"` 时，允许窗口重叠，结果是 `[0, 1, 2]`。
+
+窗口达到目标长度后，循环始终只保留最近的 `width` 个字符。每轮移出刚刚离开范围的那个字符，便不会让前一个窗口的计数污染下一次比较。
+
+## 复杂度与适用边界
+
+模式串长度为 `m` 时，初始化需要 `O(m)`。文本有 `n` 个位置，每次比较固定的 26 个计数，因此总时间为 `O(m + 26n)`；在固定字母表下通常记为 `O(m + n)`。除输出外，工作空间为 `O(26)`。如果字符集不固定，每轮比较完整映射可能更昂贵，可维护不匹配数量或更合适的统计结构。代码遵循题目的小写字母前提，并明确将空模式串视为没有匹配。

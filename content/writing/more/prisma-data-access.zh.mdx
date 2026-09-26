@@ -1,0 +1,29 @@
+# 设计 Prisma 数据访问边界
+
+我的旧 Prisma 笔记罗列了 `findMany`、`include`、`groupBy` 和 `update` 等调用。更重要的问题是：页面怎样请求数据，才不会无意中取出过多字段，也不会相信未经验证的标识符？Prisma Client 提供带类型的查询方法；应用仍需决定用户可以看到哪些记录和字段。
+
+## 从页面真正要回答的问题开始
+
+假设页面只需显示最新项目的名称和创建时间。下面是示意查询，前提是已有生成的 `prisma` 客户端，以及带这些字段的 `Project` 模型：
+
+```ts
+const projects = await prisma.project.findMany({
+  select: { id: true, name: true, createdAt: true },
+  orderBy: { createdAt: "desc" },
+  take: 20,
+});
+```
+
+`select` 让结果贴近界面需求；`orderBy` 明确顺序；`take` 限制第一页的数量。若页面需要关联记录，也应有意识地用 `select` 或 `include` 选择。普通查询不会自动带出所有关联数据；把关联字段全部返回，又可能形成过大的结果。数据量增长后，还应考虑配合稳定排序的游标分页。
+
+## 将输入与权限分开
+
+详情页应先解析路由 ID，再查询，并把“找不到”当作正常结果处理。ID 格式正确不等于访问已获授权。如果项目属于某个用户，查询还应加入从服务器认证状态得出的访问条件，例如所有者筛选。客户端传来的 owner ID 不能作为所有权证明。
+
+写入也遵守同样的边界：验证允许编辑的字段，按操作选择 `create`、`update` 或 `delete`；数项数据库变更必须一起成功或失败时使用事务。Prisma 生成的类型可以发现字段形状不匹配，却不能代替输入验证和授权。我现在更愿意把 ORM 看成边界：它把应用明确提出的问题转为数据库操作，但是否允许提出这个问题，仍由应用判断。
+
+### 参考资料
+
+- [Prisma CRUD 查询](https://www.prisma.io/docs/orm/prisma-client/queries/crud)
+- [Prisma 字段选择](https://www.prisma.io/docs/orm/prisma-client/queries/select-fields)
+- [Prisma 关联查询](https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries)

@@ -1,0 +1,26 @@
+# Navigation, forms, and fetch are different browser requests
+
+A browser can request the same URL for several reasons. Treating all of them as “opening a page” makes old networking examples confusing. The initiator matters: a user navigates, an HTML form submits, a resource element loads, or JavaScript calls `fetch()`.
+
+## One endpoint, different outcomes
+
+Following a link normally navigates the document. A form can also navigate when submitted. With `method="get"`, successful form controls are encoded in the URL's query. With `method="post"`, the form sends data in the request body; its encoding depends on `enctype`. The server's response may become the new document, subject to the browser's navigation rules.
+
+`fetch()` makes a request from JavaScript and gives code a `Response` object. It does not replace the current document merely because the response contains HTML. The following browser-console example requests the current site's home page and prints its status. Run it on a site whose `/` route is available.
+
+```js
+const response = await fetch("/");
+console.log(response.status);
+```
+
+For a cross-origin request, browser rules such as CORS can prevent JavaScript from reading a response unless the server permits it. A normal navigation follows a different security path. Resource elements such as `<img>` can initiate their own requests too, without page code calling `fetch()`.
+
+Open the Network panel and compare the request method, initiator, destination, headers, response, and any redirect. Those observations explain behavior more reliably than assuming a URL always has one request shape. For a broader account of the URL and response, see [From a URL to a page resource](/en/writing/url-to-resource).
+
+<Key>The URL names a destination; the browser action determines how it requests and uses that destination.</Key>
+
+### References
+
+- [MDN: Sending form data](https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Sending_and_retrieving_form_data)
+- [MDN: Using the Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch)
+- [MDN: Cross-Origin Resource Sharing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS)

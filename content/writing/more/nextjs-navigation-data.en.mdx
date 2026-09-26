@@ -1,0 +1,31 @@
+# Following a route through a Next.js page
+
+My older Next.js notes mixed several routing generations. For a current App Router page, I start with three questions: how does the user reach the route, where does the page obtain its data, and which component needs browser state?
+
+## Navigation has a destination
+
+An internal article link should use `Link` with a real route. For example, a localized article index can link to `/en/writing/example`. The URL identifies the page and remains usable on refresh or when shared. Client-side navigation may make the transition faster, but the route still needs to work as a direct request.
+
+```tsx
+import Link from "next/link";
+
+export function ArticleLink() {
+  return <Link href="/en/writing/example">Read the article</Link>;
+}
+```
+
+This component is illustrative: the destination must exist in the application for the link to resolve.
+
+## Data and interactivity have different owners
+
+An App Router page can be an async Server Component and load data before rendering. An interactive control, such as a theme switch, needs a Client Component boundary because it uses browser events or state. This boundary does not imply that every component in the page must become a Client Component. Route parameters are supplied to the page; in recent Next.js versions their API is asynchronous, so code must follow the version installed in the project.
+
+Pre-rendering and caching also depend on route code and configuration. `generateStaticParams` supplies values for dynamic paths at build time; it does not by itself describe every route's runtime or caching behavior. When adapting an older tutorial, inspect the installed version's documentation and test direct navigation, internal navigation, and refresh separately.
+
+<Key>A route is a shareable URL; component boundaries decide where data loading and interaction run.</Key>
+
+### References
+
+- [Next.js: Linking and navigating](https://nextjs.org/docs/app/getting-started/linking-and-navigating)
+- [Next.js: Fetching data](https://nextjs.org/docs/app/getting-started/fetching-data)
+- [Next.js: generateStaticParams](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)

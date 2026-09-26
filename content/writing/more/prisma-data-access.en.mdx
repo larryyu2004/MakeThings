@@ -1,0 +1,29 @@
+# Designing a Prisma data access boundary
+
+My earlier Prisma note collected calls such as `findMany`, `include`, `groupBy`, and `update`. The more important question is how a page asks for data without accidentally loading too much or trusting an unvalidated identifier. Prisma Client gives typed query methods; the application still decides which records and fields a user should see.
+
+## Start with the screen's question
+
+Suppose a page needs the newest projects, showing only names and creation dates. This illustrative query assumes a generated `prisma` client and a `Project` model with those fields:
+
+```ts
+const projects = await prisma.project.findMany({
+  select: { id: true, name: true, createdAt: true },
+  orderBy: { createdAt: "desc" },
+  take: 20,
+});
+```
+
+`select` keeps the result aligned with the UI's needs; `orderBy` makes the order explicit; `take` bounds the first page. If the screen also needs related records, choose them deliberately with `select` or `include`. Relations do not appear automatically in a normal query, and returning every related field can create an unnecessarily large payload. As the collection grows, consider cursor pagination with a stable order.
+
+## Separate input from permission
+
+For a detail page, parse the route ID before querying and handle “not found” as a normal outcome. A valid ID is not authorization. If projects belong to users, the query must also apply the caller's access rule, such as an owner filter derived from authenticated server state. Never treat a client-supplied owner ID as proof of ownership.
+
+Writes need the same discipline. Validate the editable fields, choose `create`, `update`, or `delete` according to the action, and use a transaction when several database changes must succeed or fail together. Prisma's generated types help catch mismatched field shapes, but they do not replace input validation or authorization. This is why I now think of the ORM as a boundary: it turns an explicit application question into a database operation, while the application remains responsible for deciding whether that question is allowed.
+
+### References
+
+- [Prisma CRUD queries](https://www.prisma.io/docs/orm/prisma-client/queries/crud)
+- [Prisma selecting fields](https://www.prisma.io/docs/orm/prisma-client/queries/select-fields)
+- [Prisma relation queries](https://www.prisma.io/docs/orm/prisma-client/queries/relation-queries)

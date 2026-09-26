@@ -1,0 +1,30 @@
+# What a plain HTML form already does
+
+Forms are often discussed as if JavaScript must own submission. A native HTML form already names the destination, collects successful controls, encodes their values, and asks the browser to navigate. My old notes compared GET and POST, but called POST data “hidden from users” and implied it had no size limits. Neither statement is a safe design rule.
+
+## Labels and named controls
+
+This form can be saved as an HTML file and opened in a browser. The example action is illustrative: `/search` needs a server route to return real results.
+
+```html
+<form action="/search" method="get">
+  <label for="query">Search terms</label>
+  <input id="query" name="q" type="search" required>
+  <button type="submit">Search</button>
+</form>
+```
+
+The `for`/`id` pair associates the visible label with the input, making the label clickable and giving the control an accessible name. The `name` is different: it becomes the submitted field name. Without it, this input would not contribute a `q` value to the request. `required` enables built-in constraint validation for an empty value, though server validation is still necessary. Placeholder text is a hint, not a replacement for a label.
+
+## Choose the method from the action
+
+With `method="get"`, the browser serializes the form fields into the URL query, such as `/search?q=browser`. This suits retrieval that users may bookmark or share. With `method="post"`, a normal form sends fields in the request body, usually using `application/x-www-form-urlencoded` unless another encoding is selected. POST is appropriate for an action that changes server state, but the body is still visible to the user through developer tools and to parties that can inspect an unprotected connection. Use HTTPS for transport protection and authorize the operation on the server.
+
+There is no useful blanket claim that POST has “no length restriction”: browsers, servers, proxies, and application policy can impose limits. Similarly, GET URLs can be logged or shared, so avoid putting secrets in query parameters. A form submission also needs a clear response: a useful result page for GET, and commonly a redirect after a successful POST to prevent accidental resubmission on refresh.
+
+<Key>Start with semantic controls and a method that matches the action. Add JavaScript only when the interaction needs more than native form behavior.</Key>
+
+### References
+
+- [HTML Standard: forms](https://html.spec.whatwg.org/multipage/forms.html)
+- [MDN: form element](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/form)

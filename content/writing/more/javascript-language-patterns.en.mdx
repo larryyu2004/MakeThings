@@ -1,0 +1,35 @@
+# Follow a click through JavaScript's event model
+
+My JavaScript notes collect syntax, prototypes, promises, arrays, and events. The event example is the strongest starting point for a short article because it answers a practical question: **why can one click run handlers on several elements?**
+
+## A click has a path
+
+Paste this self-contained example into a blank HTML file. A click on the button logs the outer capture listener, the button listener, and then the outer bubble listener.
+
+```html
+<div id="outer"><button id="inner">Open</button></div>
+<script>
+  const outer = document.querySelector("#outer");
+  const inner = document.querySelector("#inner");
+  outer.addEventListener("click", () => console.log("capture"), { capture: true });
+  inner.addEventListener("click", () => console.log("target"));
+  outer.addEventListener("click", () => console.log("bubble"));
+</script>
+```
+
+The event travels through an ancestor path during capture, reaches its target, then moves back through ancestors during bubbling when that event type bubbles. `event.target` is the element where the event originated; `event.currentTarget` is the element whose current listener is running. That distinction is useful for a list or menu with one listener on its container.
+
+## Delegation without surprising actions
+
+Suppose a menu contains many buttons. A container listener can check `event.target.closest("button[data-action]")`, confirm the found button belongs to the container, then read its `dataset.action`. New buttons added later can use the same listener. This is event delegation: it uses the propagation path rather than attaching a listener to every button.
+
+`stopPropagation()` prevents the event from continuing along the path; it does not cancel the browser's default action. `preventDefault()` cancels a cancelable default action, such as following a link, but does not stop other listeners from receiving the event. Use each only for a specific interaction rule. Blanket propagation blocking can break unrelated controls higher in the page.
+
+<Key>Trace target, current listener, and default action separately. They answer three different debugging questions.</Key>
+
+The same care applies when a callback runs later: promises schedule reactions as microtasks, while a user click enters through an event task. That timing question deserves its own treatment; propagation describes where the event travels, not when every async callback runs.
+
+### References
+
+- [DOM Standard: dispatching events](https://dom.spec.whatwg.org/#concept-event-dispatch)
+- [MDN: Event bubbling](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Scripting/Event_bubbling)

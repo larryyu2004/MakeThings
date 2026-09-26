@@ -1,0 +1,43 @@
+# Put Unity work in the right callback
+
+A Unity component has several familiar callbacks, but their names alone do not tell us where every operation belongs. My C# notes listed `Awake`, `Start`, `Update`, and `FixedUpdate` in order. The useful design question is **which work must happen once, which follows a frame, and which follows a physics step?**
+
+## Initialization and activation
+
+Use `Awake` for a component's own initial setup, such as caching a reference available on the same object. `OnEnable` runs when the behaviour becomes enabled and active; it is a natural place to subscribe to an event. Pair that subscription with `OnDisable` so a disabled listener stops receiving notifications. `Start` runs before the first frame update for an enabled script and can handle initialization that does not have to occur in `Awake`.
+
+```csharp
+using UnityEngine;
+
+public sealed class InputListener : MonoBehaviour
+{
+    [SerializeField] private InputSource source;
+
+    private void OnEnable()
+    {
+        if (source != null) source.Pressed += HandlePress;
+    }
+
+    private void OnDisable()
+    {
+        if (source != null) source.Pressed -= HandlePress;
+    }
+
+    private void HandlePress() => Debug.Log("Pressed");
+}
+```
+
+`InputSource` is an illustrative project-specific component exposing a `Pressed` event; this fragment needs that component to compile. The pairing matters more than the example name. Do not assume all objects' `Awake` callbacks finish in a particular cross-object order unless the scene and execution order guarantee it.
+
+## Frame time and physics time
+
+`Update` follows rendered frames and suits polling frame-based input or updating non-physics presentation. `FixedUpdate` runs on the fixed timestep and suits physics work. It may run zero, one, or multiple times between rendered frames, so “one physics step per frame” is an unreliable assumption. `LateUpdate` runs after `Update` callbacks and is useful when a camera should follow a target after that target's frame movement.
+
+For a duration measured in gameplay time, accumulate `Time.deltaTime` in `Update`; for fixed-step physics use the appropriate fixed timestep. Neither gives a guarantee about exact wall-clock delivery. `OnDestroy` is for final cleanup, but event subscriptions that should end when a component is disabled belong in `OnDisable`.
+
+<Key>Choose a callback from the dependency and timing of the work, then make subscription and cleanup symmetric.</Key>
+
+### References
+
+- [Unity Manual: order of execution for event functions](https://docs.unity3d.com/Manual/ExecutionOrder.html)
+- [Unity Scripting API: MonoBehaviour](https://docs.unity3d.com/ScriptReference/MonoBehaviour.html)

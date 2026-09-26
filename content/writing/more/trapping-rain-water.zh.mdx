@@ -1,0 +1,36 @@
+# 接雨水：从左右边界到双指针
+
+在 [LeetCode 42](https://leetcode.com/problems/trapping-rain-water/) 中，第 `i` 个位置上方的水由其左侧（含自身）最高墙和右侧（含自身）最高墙共同决定。深度为 `min(leftMax[i], rightMax[i]) - height[i]`。必须取较低的一侧，因为水会从那里溢出。
+
+## 先用两个数组理解
+
+从左到右求最大值数组，再从右到左求最大值数组。对高度 `[2, 0, 2]`，中间两侧的墙都是 `2`，因而能存 `2` 单位的水。逐位置累加公式即可。该方案思路直接，时间为 `O(n)`，但两个数组使**额外空间也是 `O(n)`**。旧稿将空间写作 `O(1)`，遗漏了这两个数组。
+
+## 去掉数组
+
+双指针只保存两侧已见过的最高墙。每一步处理已知最高墙较低的一侧；另一侧已经有一堵至少同样高的墙，因此当前侧的水位可以确定。
+
+```cpp
+int trap(const std::vector<int>& height) {
+    int left = 0, right = static_cast<int>(height.size()) - 1;
+    int leftMax = 0, rightMax = 0, total = 0;
+    while (left < right) {
+        leftMax = std::max(leftMax, height[left]);
+        rightMax = std::max(rightMax, height[right]);
+        if (leftMax <= rightMax) {
+            total += leftMax - height[left];
+            ++left;
+        } else {
+            total += rightMax - height[right];
+            --right;
+        }
+    }
+    return total;
+}
+```
+
+空数组时 `right` 为 `-1`，循环不会执行。对于 `[3, 0, 1, 3]`，中间两格分别存 `3` 和 `2`，合计 `5`。算法时间为 `O(n)`，额外空间为 `O(1)`。
+
+## 第三种观察角度
+
+递减的下标栈会在遇到更高的右墙时发现凹槽。弹出槽底后，新的栈顶给出左墙；用“宽度 × 有界高度”加入一层水。每个下标至多入栈和出栈一次，所以时间也是 `O(n)`，但需要 `O(n)` 额外空间。数组、双指针和栈都是在不同方向上计算同一块有边界的面积。

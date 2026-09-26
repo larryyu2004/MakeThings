@@ -1567,6 +1567,73 @@ html[data-theme="dark"] .notes-image__marker {
   border-top: 1px solid var(--line);
 }
 
+.writing-collection + .writing-collection {
+  margin-top: clamp(4rem, 8vw, 7rem);
+}
+
+.writing-collection__heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin: 0 0 1.5rem;
+  font-family: var(--display);
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  font-weight: 500;
+  line-height: 1;
+}
+
+.writing-collection__heading span {
+  color: var(--blue-deep);
+  font-size: 0.8rem;
+}
+
+.writing-collection__intro {
+  margin: 0 0 1.4rem;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.writing-topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-bottom: 2rem;
+}
+
+.writing-topics a {
+  display: inline-flex;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  color: var(--blue-deep);
+  background: var(--surface-strong);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+}
+
+.writing-topics a:hover,
+.writing-topics a:focus-visible {
+  background: var(--active-bg);
+}
+
+.writing-topics span {
+  color: var(--muted);
+}
+
+.writing-topic {
+  scroll-margin-top: 6rem;
+  margin-top: 2.8rem;
+}
+
+.writing-topic__heading {
+  margin: 0 0 1rem;
+  font-family: var(--display);
+  font-size: clamp(1.65rem, 3vw, 2.5rem);
+  font-weight: 500;
+}
+
 .writing-home {
   position: relative;
 }

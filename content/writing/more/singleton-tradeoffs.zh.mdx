@@ -1,0 +1,46 @@
+# 单例其实是在决定所有权
+
+旧设计模式笔记把单例简化为 Unity `GameManager` 中的静态 `Instance` 字段。它确实方便，却不能单独保证场景里只有一个对象。两个场景都可能创建管理器，后执行的 `Awake` 甚至会悄悄覆盖先前实例。真正要问的是：**谁拥有服务、它活多久、使用者怎样拿到它？**
+
+## 静态属性带来的便利
+
+全局属性让任何组件都能轻易访问管理器。只有一个已知场景的小原型，也许这样已经够用。但调用方因此有了隐藏依赖：方法可以调用 `GameManager.Instance`，构造函数或序列化字段却没有显示这个要求。测试需要布置全局状态，场景切换也需要约定哪个实例继续存在。
+
+```csharp
+using UnityEngine;
+
+public sealed class GameManager : MonoBehaviour
+{
+    public static GameManager Instance { get; private set; }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        Instance = this;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+}
+```
+
+这是一个最小的场景内示例，并非完整的跨场景服务。它拒绝重复实例，在自身销毁时清理静态引用。由于没有调用 `DontDestroyOnLoad`，切换场景时可以有意换一个管理器。如果需要跨场景保留，应先规划场景所有权与初始化顺序；单独添加 `DontDestroyOnLoad` 仍无法解决重复创建问题。
+
+## 何时直接传引用更清楚
+
+如果只有少数组件使用服务，序列化引用或通过构造函数注入的普通 C# 服务能把依赖明示出来。场景可以拥有一个管理器，却不必让它全局可达。若要共享的是数据而不是运行中的服务，`ScriptableObject` 资源可能更合适。这些选择没有永远正确的一种；关键差别是依赖和生命周期在哪里表达。
+
+<Key>“只有一个实例”是需要跨场景维护和测试的不变量，不是写下 `static` 就自动得到的结果。</Key>
+
+引入全局访问前，先想想场景加载两次、测试顺序改变，或组件在初始化前访问服务会怎样。这些情况能检验便利是否值得付出隐藏耦合的代价。
+
+### 参考资料
+
+- [Unity 脚本 API：MonoBehaviour.Awake](https://docs.unity3d.com/ScriptReference/MonoBehaviour.Awake.html)
+- [Unity 脚本 API：Object.DontDestroyOnLoad](https://docs.unity3d.com/ScriptReference/Object.DontDestroyOnLoad.html)

@@ -1,0 +1,30 @@
+# 从外到内读懂 Bootstrap 布局
+
+旧的 Bootstrap 文件只有一个标题，所以这篇是简短入门，而不是我已完成项目的复盘。当团队需要现成的布局词汇时，Bootstrap 很方便。首要判断是容器、网格和间距约定是否适合页面，而不是哪里可以最快加一个类名。
+
+## 容器、行、列
+
+网格应从外到内阅读。容器限制内容宽度并提供内边距；行组织列；列的类名决定元素在不同宽度下占据十二列中的多少份。下面的示意片段在默认情况下每行一张卡片，到中等宽度每行两张，到大宽度每行三张：
+
+```html
+<div class="container py-4">
+  <div class="row g-3">
+    <article class="col-12 col-md-6 col-lg-4">第一张</article>
+    <article class="col-12 col-md-6 col-lg-4">第二张</article>
+    <article class="col-12 col-md-6 col-lg-4">第三张</article>
+  </div>
+</div>
+```
+
+`g-3` 设置列间距。`md` 和 `lg` 类从各自断点开始持续生效，不是两个独立的固定宽度布局。窄屏时只采用 `col-12`。因此响应式检查需要观察实际内容在中间宽度的表现，不能只看一个手机尺寸和一个桌面尺寸。
+
+## 组件本身也是设计选择
+
+Bootstrap 还提供组件样式与可选的 JavaScript 交互。这些默认值可以加速原型制作，同时也带来特定的视觉语言和 CSS 体积。如果项目已有鲜明的设计系统，可以有选择地使用 Bootstrap，或采用原生 CSS，而不是逐个元素对抗默认样式。使用交互组件时，仍需遵照文档的标记结构并测试键盘操作；网格类不会自动解决可访问性。
+
+我的结论是把 Bootstrap 当成一组一致的布局和组件约定。类名组合应能解释各关键宽度下的布局意图，不能代替实际页面检查。
+
+### 参考资料
+
+- [Bootstrap 5.3 网格系统](https://getbootstrap.com/docs/5.3/layout/grid/)
+- [Bootstrap 5.3 断点](https://getbootstrap.com/docs/5.3/layout/breakpoints/)

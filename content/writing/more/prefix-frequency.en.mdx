@@ -1,0 +1,30 @@
+# A prefix table over values, not positions
+
+Most prefix-sum examples accumulate array positions: `prefix[i]` describes everything before index `i`. A different but useful question asks how many **previously seen values** fall inside `[L, R]`. Here the prefix axis is the value domain, not the input order.
+
+## Define the table precisely
+
+Assume values lie in `0..maxValue`. Let `prefix[v]` count seen values strictly less than `v`. Then the number in inclusive range `[L, R]` is `prefix[R + 1] - prefix[L]`. For seen values `[1, 3, 2]`, `prefix[1] = 0`, `prefix[3] = 2`, and `prefix[4] = 3`. Thus `[2, 3]` contains `prefix[4] - prefix[2] = 3 - 1 = 2` values.
+
+The extra endpoint matters: when `R == maxValue`, we still need index `R + 1`, so a table indexed through `maxValue + 1` needs `maxValue + 2` slots. It is easy to confuse this with an ordinary position-based prefix sum because both use subtraction, but their indices mean different things.
+
+## Build once, query many times
+
+If all prior values are fixed before queries, first count each value and then accumulate those counts. The following C++ code assumes valid nonnegative values and query bounds within `0..maxValue`:
+
+```cpp
+std::vector<int> prefix(maxValue + 2, 0);
+for (int value : seen) ++prefix[value + 1];
+for (int v = 1; v <= maxValue + 1; ++v)
+    prefix[v] += prefix[v - 1];
+
+auto countInRange = [&](int left, int right) {
+    return prefix[right + 1] - prefix[left];
+};
+```
+
+Building takes `O(n + maxValue)` time and `O(maxValue)` space; each query takes `O(1)`. This is attractive when the value range is small and there are many queries against the same set. Negative or very large values need coordinate compression, a different data structure, or an offset chosen from known bounds.
+
+## What changes for a stream?
+
+The old note updated every `prefix[v]` above an inserted value. That keeps queries constant time but makes each insertion `O(maxValue)`. For many interleaved inserts and range queries, a Fenwick tree over the value domain gives `O(log maxValue)` updates and queries. Choose the representation from the operation pattern, not merely from the word “prefix.”

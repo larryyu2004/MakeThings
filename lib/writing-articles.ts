@@ -1,7 +1,7 @@
-import type { WritingLocale, WritingSlug } from "@/lib/writing-path";
+import type { FeaturedWritingSlug, WritingLocale } from "@/lib/writing-path";
 
 export type WritingArticleSummary = {
-  slug: WritingSlug;
+  slug: FeaturedWritingSlug;
   category: Record<WritingLocale, string>;
   title: Record<WritingLocale, string>;
   summary: Record<WritingLocale, string>;

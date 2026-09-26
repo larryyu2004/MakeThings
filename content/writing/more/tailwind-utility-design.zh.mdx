@@ -1,0 +1,31 @@
+# 用 Tailwind 工具类设计，而不是堆砌类名
+
+我旧的 Tailwind 笔记只有一个仪表盘顶栏。它展示了不少工具类，却没有讲清设计决策。工具类通常负责一项样式；组合起来，可以让间距、状态和响应式行为靠近标记结构。代价是类名过多时很难扫读，因此团队需要约定可复用的模式。
+
+## 读懂每个宽度下的意图
+
+下面的示意卡片默认纵向堆叠，在 `sm` 断点起改成横向排列：
+
+```html
+<article class="flex flex-col gap-4 rounded-lg border p-4 sm:flex-row sm:items-center">
+  <div class="min-w-0 flex-1">
+    <h2 class="font-semibold">项目名称</h2>
+    <p class="text-sm text-slate-600">简短的项目介绍。</p>
+  </div>
+  <a class="rounded bg-slate-900 px-3 py-2 text-white hover:bg-slate-700 focus-visible:outline-2" href="/projects">查看</a>
+</article>
+```
+
+`flex-col` 是基础布局；`sm:flex-row` 从小屏断点起改变方向。悬停与焦点变体服务于不同输入方式，不能只有悬停时才显示交互状态。颜色与尺寸只是例子，不代表完成的视觉设计。应在真实视口宽度下检查长标题、翻译文本和键盘焦点。
+
+## 建立一致的设计词汇
+
+重复使用的数值可以进入主题变量；职责稳定的重复标记可以提取为组件。这与每遇到三个相同类名就建一个组件不同。先保证语义化 HTML：链接用于导航，按钮用于执行操作，工具类只负责呈现。使用一次性任意值之前，也应确认它表达了真实的设计需求。
+
+Tailwind 不会代替我们决定信息层级或可访问性；它只是让既定的 CSS 约束更容易表达。真正有价值的是页面的响应式与交互行为能够用少数一致规则解释，而不是样式表最短。
+
+### 参考资料
+
+- [Tailwind：使用工具类设置样式](https://tailwindcss.com/docs/styling-with-utility-classes)
+- [Tailwind：响应式设计](https://tailwindcss.com/docs/responsive-design)
+- [Tailwind：主题变量](https://tailwindcss.com/docs/theme)

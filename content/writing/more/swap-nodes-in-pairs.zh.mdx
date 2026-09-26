@@ -1,0 +1,34 @@
+# 交换链表节点时别丢掉后半段
+
+[LeetCode 24](https://leetcode.com/problems/swap-nodes-in-pairs/) 要求交换相邻节点本身，而不只是交换节点里的数值。难点在于局部反转指针时，仍然保留通往链表后半段的连接。
+
+## 给头节点加一个前驱
+
+使用指向原头节点的哑节点，第一对和后续的节点对便能采用相同操作：`previous` 始终指向当前二元组的前一个节点。将两节点记为 `first`、`second`，改线之前先保存 `after = second->next`。新的连接顺序是 `previous -> second -> first -> after`。
+
+```cpp
+// LeetCode 提供含 val 和 next 字段的 ListNode。
+ListNode* swapPairs(ListNode* head) {
+    ListNode dummy(0, head);
+    ListNode* previous = &dummy;
+    while (previous->next && previous->next->next) {
+        ListNode* first = previous->next;
+        ListNode* second = first->next;
+        ListNode* after = second->next;
+
+        previous->next = second;
+        second->next = first;
+        first->next = after;
+        previous = first;
+    }
+    return dummy.next;
+}
+```
+
+对 `1 -> 2 -> 3 -> 4 -> 5`，第一轮得到 `2 -> 1 -> 3 -> 4 -> 5`，第二轮得到 `2 -> 1 -> 4 -> 3 -> 5`。最后一个节点没有搭档，保持原位。空链表和单节点链表都不会进入循环；所有情况下返回 `dummy.next` 都是正确的新头节点。
+
+## 为什么要先保存指针
+
+若在保存后继之前覆盖 `second->next`，原来的后半段可能再也找不到。若漏掉 `first->next = after`，还可能留下环或断开链表。与其死记代码，不如画出四个指针在交换前后的箭头，逐条确认它们指向哪里。
+
+循环至多访问每个节点一次，时间复杂度为 `O(n)`。它只使用固定数量的指针及一个栈上的哑节点，额外空间为 `O(1)`。节点的数值没有改变，也没有分配或删除链表节点。

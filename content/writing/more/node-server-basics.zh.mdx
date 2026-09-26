@@ -1,0 +1,37 @@
+# 一个小型 Node 服务器究竟做了什么
+
+我旧笔记的起点是安装 Express 并调用 `listen`。这能让服务很快跑起来，却藏起了请求与响应之间的边界。在加入框架之前，我想先看清最小的服务器：接收请求、选定响应、结束响应。
+
+## 一次请求，一次响应
+
+将下面的内容保存为 `server.mjs`，运行 `node server.mjs`，分别访问 `http://localhost:8383/health` 和其他路径。例子只使用 Node 内置的 HTTP 模块，不需要安装依赖。
+
+```js
+import { createServer } from "node:http";
+
+const server = createServer((request, response) => {
+  if (request.method === "GET" && request.url === "/health") {
+    response.writeHead(200, { "content-type": "application/json" });
+    response.end(JSON.stringify({ status: "ok" }));
+    return;
+  }
+
+  response.writeHead(404, { "content-type": "text/plain; charset=utf-8" });
+  response.end("Not found");
+});
+
+server.listen(8383, () => console.log("Listening on http://localhost:8383"));
+```
+
+请求提供方法和 URL；响应包含状态码、响应头和内容。`response.end()` 告诉 Node 本次响应已经结束。这里的 `GET /health` 有意保持简单：它只能证明进程可以应答请求，不能证明数据库等依赖正常。真正的服务需要先定义“健康”要覆盖哪些环节。
+
+## 框架在哪一步发挥作用
+
+随着路由增多，框架可以管理路径匹配、中间件、错误处理和请求正文。但底层仍然是一次 HTTP 交互。旧笔记还把 `bcryptjs` 描述成“加密”凭据；保存密码时应使用合适的**密码哈希**方法及参数。加密和哈希解决的是不同问题。认证、密钥和数据库访问也不能靠一个入门服务器的示例顺手推断出来。
+
+我现在会先追踪一条请求：收到了什么、做了哪些验证、返回哪个状态，以及响应是否结束。理解这条路径后，Express 等框架才是组织复杂度的工具，而不是理解服务器的前置条件。
+
+### 参考资料
+
+- [Node.js HTTP API](https://nodejs.org/api/http.html)
+- [OWASP 密码存储指南](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)

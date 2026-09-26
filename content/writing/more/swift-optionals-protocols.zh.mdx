@@ -1,0 +1,50 @@
+# 在 Swift 中明确处理缺失的值
+
+我学习 iOS 时留下的 Swift 笔记覆盖了许多语言特性。其中两个概念适合放在一起：可选值描述可能缺失的数据，协议描述调用方真正需要的行为。两者共同构成不确定输入与稳定应用代码之间的边界。
+
+## 可选值要求作出决定
+
+`Int("42")` 返回 `Int?`，因为解析可能失败。用 `!` 强制解包是假设结果一定存在；若实际为 `nil`，程序会在运行时出错。可选绑定则把失败分支明确写出来。
+
+```swift
+func describeCount(_ text: String) -> String {
+    guard let count = Int(text), count >= 0 else {
+        return "请输入非负整数"
+    }
+    return "数量：\(count)"
+}
+
+print(describeCount("42"))   // 数量：42
+print(describeCount("many")) // 验证提示
+```
+
+`guard` 还让后续代码中的 `count` 成为非可选整数。如果缺失本身是合法结果，函数可以返回可选值，由调用方决定如何处理。如果失败需要更多信息，抛出错误或使用 `Result` 往往比只返回 `nil` 更清楚。`user?.profile?.name` 这样的可选链适合让缺失沿访问路径传递，但不应把需要处理的错误悄悄藏起来。
+
+## 描述需要的能力
+
+协议可以规定输出端要做什么，而无需让函数依赖某个具体类。下面是一个完整的小例子：
+
+```swift
+protocol CountSink {
+    func show(_ message: String)
+}
+
+struct ConsoleSink: CountSink {
+    func show(_ message: String) { print(message) }
+}
+
+func present(_ text: String, to sink: any CountSink) {
+    sink.show(describeCount(text))
+}
+
+present("7", to: ConsoleSink())
+```
+
+协议并不决定输入如何验证；那是解析函数的责任。它只让展示函数依赖真正需要的一个行为。以后可以换成 UI 实现或测试用的输出端，而不必修改 `present`。
+
+<Key>在数据进入时处理不确定性；再用协议让后续层依赖行为，而不是依赖某个具体类型。</Key>
+
+### 参考资料
+
+- [Swift 语言指南：基础](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/thebasics/)
+- [Swift 语言指南：协议](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/protocols/)

@@ -1,0 +1,31 @@
+# Count subarrays with a prefix-sum frequency map
+
+The old note for [LeetCode 560](https://leetcode.com/problems/subarray-sum-equals-k/) records the question and two examples, but does not yet develop an algorithm. The useful step is to transform a contiguous-range sum into a difference between two prefix sums.
+
+## Turn a range into a difference
+
+Let `prefix` be the sum of all elements before the current position. If an earlier prefix had value `prefix - k`, then the elements between that earlier point and the current point sum to `k`. There may be several such earlier points, so store a **frequency** of each prefix value, not just its last position.
+
+Seed the map with `{0: 1}`: it represents the empty prefix before the array and allows a subarray starting at index zero to count. For each number, update the running sum, add the number of earlier prefixes equal to `sum - k` to the answer, then record the new sum for future positions.
+
+```cpp
+long long countSubarrays(const std::vector<int>& nums, int k) {
+    std::unordered_map<long long, long long> seen{{0, 1}};
+    long long sum = 0, answer = 0;
+    for (int value : nums) {
+        sum += value;
+        auto it = seen.find(sum - k);
+        if (it != seen.end()) answer += it->second;
+        ++seen[sum];
+    }
+    return answer;
+}
+```
+
+With `[1, 1, 1]` and `k = 2`, the matching ranges are indices `0..1` and `1..2`, giving `2`. With `[1, 2, 3]` and `k = 3`, they are `[1, 2]` and `[3]`.
+
+## Why the update order matters
+
+Count matches **before** adding the current prefix to `seen`. Otherwise, for `k = 0`, the current prefix could match itself and count an empty subarray. Negative numbers are permitted, so a conventional shrinking sliding window is not reliable: extending a range can lower its sum. The frequency-map method handles positive, zero, and negative values alike.
+
+Expected time is `O(n)` with a hash map, and extra space is `O(n)` in the worst case. The `long long` variables reduce overflow risk for running sums and result counts, although the return type should still follow the interface and input bounds of the environment using the code.
