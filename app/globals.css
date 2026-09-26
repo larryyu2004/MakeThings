@@ -640,6 +640,64 @@ html[data-theme="dark"] .hero::after {
   background: var(--paper-light);
 }
 
+.project-card__primary {
+  display: block;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.project-video {
+  width: min(92vw, 1100px);
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  background: var(--paper-light);
+  box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.35);
+}
+
+.project-video::backdrop {
+  background: rgba(9, 11, 19, 0.82);
+}
+
+.project-video__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 3.25rem;
+  padding: 0.5rem 0.85rem 0.5rem 1rem;
+}
+
+.project-video__close {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1.75rem;
+  line-height: 1;
+}
+
+.project-video__close:hover {
+  background: var(--active-bg);
+}
+
+.project-video video {
+  display: block;
+  width: 100%;
+  max-height: calc(100dvh - 5.5rem);
+  aspect-ratio: 3 / 2;
+  background: #000;
+}
+
 .project-card__writing {
   display: flex;
   align-items: center;
@@ -1429,7 +1487,7 @@ html[data-theme="dark"] .notes-image__marker {
     height: 100%;
   }
 
-  .projects-section--horizontal .project-card > a:first-child {
+  .projects-section--horizontal .project-card__primary {
     display: flex;
     flex: 1 1 auto;
     flex-direction: column;

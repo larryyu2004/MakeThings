@@ -12,6 +12,7 @@ export type Project = {
   description: LocalizedText;
   alt: LocalizedText;
   ariaLabel: LocalizedText;
+  href?: string;
   image: string;
   darkImage: string;
   width: number;
@@ -305,8 +306,8 @@ export const projects: Project[] = [
       zh: "布里斯班风格的多人水资源与基础设施模拟图，展示五种玩家角色和城市长期规划。",
     },
     ariaLabel: {
-      en: "Ask about the ozWaterGame project",
-      zh: "了解 ozWaterGame 项目",
+      en: "Play the ozWaterGame project video",
+      zh: "播放 ozWaterGame 项目视频",
     },
     image: "/images/ozwatergame-art.png",
     darkImage: "/images/ozwatergame-art-dark.png",
@@ -330,9 +331,10 @@ export const projects: Project[] = [
       zh: "展示水资源需求与供应在蓝色支点上保持平衡的手绘编辑插画。",
     },
     ariaLabel: {
-      en: "Ask about the Water Balance Game project",
-      zh: "了解 Water Balance Game 项目",
+      en: "Open Water Balance Game",
+      zh: "打开 Water Balance Game",
     },
+    href: "https://water-balance-mu.vercel.app/",
     image: "/images/water-balance-game-art.png",
     darkImage: "/images/water-balance-game-art-dark.png",
     width: 1568,
@@ -376,9 +378,10 @@ export const projects: Project[] = [
       zh: "展示带有进程、系统调用、虚拟内存、写时复制和文件系统的 RISC-V xv6 内核手绘系统插画。",
     },
     ariaLabel: {
-      en: "Ask about the RISC-V operating system kernel project",
-      zh: "了解 RISC-V 操作系统内核项目",
+      en: "Open the Operating System Kernel repository",
+      zh: "打开操作系统内核代码仓库",
     },
+    href: "https://github.com/larryyu2004/XV-6-Lab",
     image: "/images/risc-v-kernel-art.png",
     darkImage: "/images/risc-v-kernel-art-dark.png",
     width: 1536,

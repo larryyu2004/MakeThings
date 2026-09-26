@@ -331,7 +331,10 @@ function Hero({ locale, theme }: { locale: Locale; theme: Theme }) {
 
 function ProjectCard({ project, locale, theme }: { project: Project; locale: Locale; theme: Theme }) {
   const [revealRef, revealVisible] = useReveal<HTMLElement>();
+  const videoDialogRef = useRef<HTMLDialogElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const title = localized(project.title, locale);
+  const hasVideo = project.id === "ozwatergame";
   const relatedArticle: WritingSlug | undefined = project.id === "ozwatergame"
     ? "unity-lan-discovery"
     : project.id === "risc-v-kernel"
@@ -339,36 +342,84 @@ function ProjectCard({ project, locale, theme }: { project: Project; locale: Loc
       : project.id === "water-balance-game"
         ? "browser-rendering"
         : undefined;
+  const cardContent = (
+    <>
+      <figure className={`project-card__media project-card__media--${project.id}`}>
+        <Image
+          className="project-card__image"
+          src={theme === "dark" ? project.darkImage : project.image}
+          alt={localized(project.alt, locale)}
+          width={project.width}
+          height={project.height}
+          sizes="(max-width: 900px) 100vw, (max-width: 1200px) 55vw, 48vw"
+        />
+      </figure>
+      <div className="project-card__body">
+        <div>
+          <div className="project-card__tag mono">{localized(project.tag, locale)}</div>
+          <h3>{title}</h3>
+        </div>
+        <span className="card__link" aria-hidden="true">
+          <ArrowIcon />
+        </span>
+      </div>
+    </>
+  );
+
+  const openVideo = () => {
+    videoDialogRef.current?.showModal();
+    void videoRef.current?.play().catch(() => {
+      // Playback controls remain available if a browser blocks autoplay.
+    });
+  };
+
+  const closeVideo = () => videoDialogRef.current?.close();
+
   return (
     <article
       ref={revealRef}
       className={`project-card${project.variant ? ` project-card--${project.variant}` : ""} ${revealClassName(revealVisible)}`}
     >
-      <a href="#contact" aria-label={localized(project.ariaLabel, locale)}>
-        <figure className={`project-card__media project-card__media--${project.id}`}>
-          <Image
-            className="project-card__image"
-            src={theme === "dark" ? project.darkImage : project.image}
-            alt={localized(project.alt, locale)}
-            width={project.width}
-            height={project.height}
-            sizes="(max-width: 900px) 100vw, (max-width: 1200px) 55vw, 48vw"
-          />
-        </figure>
-        <div className="project-card__body">
-          <div>
-            <div className="project-card__tag mono">{localized(project.tag, locale)}</div>
-            <h3>{title}</h3>
-          </div>
-          <span className="card__link" aria-hidden="true">
-            <ArrowIcon />
-          </span>
-        </div>
-      </a>
+      {hasVideo ? (
+        <button className="project-card__primary" type="button" aria-label={localized(project.ariaLabel, locale)} onClick={openVideo}>
+          {cardContent}
+        </button>
+      ) : (
+        <a className="project-card__primary" href={project.href ?? "#contact"} aria-label={localized(project.ariaLabel, locale)}>
+          {cardContent}
+        </a>
+      )}
       {relatedArticle && (
         <a className="project-card__writing mono" href={writingPath(locale, relatedArticle)}>
           {copy[locale].links.readArticle} <span aria-hidden="true">↗</span>
         </a>
+      )}
+      {hasVideo && (
+        <dialog
+          ref={videoDialogRef}
+          className="project-video"
+          aria-label={locale === "zh" ? "ozWaterGame 项目视频" : "ozWaterGame project video"}
+          onClick={(event) => {
+            if (event.target === event.currentTarget) closeVideo();
+          }}
+          onClose={() => {
+            videoRef.current?.pause();
+            if (videoRef.current) videoRef.current.currentTime = 0;
+          }}
+        >
+          <div className="project-video__content">
+            <div className="project-video__header">
+              <span className="mono">ozWaterGame / Video</span>
+              <button className="project-video__close" type="button" onClick={closeVideo} aria-label={locale === "zh" ? "关闭视频" : "Close video"}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+            <video ref={videoRef} controls playsInline preload="none" poster={theme === "dark" ? project.darkImage : project.image}>
+              <source src="/videos/ozwatergame.mp4" type="video/mp4" />
+              {locale === "zh" ? "浏览器不支持视频播放。" : "Your browser does not support video playback."}
+            </video>
+          </div>
+        </dialog>
       )}
     </article>
   );
@@ -497,7 +548,7 @@ function ProjectsSection({ locale, theme }: { locale: Locale; theme: Theme }) {
     const handleFocusIn = (event: FocusEvent) => {
       if (!active || maxOffset <= 0) return;
       const target = event.target;
-      if (!(target instanceof HTMLElement)) return;
+      if (!(target instanceof HTMLElement) || target.closest("dialog")) return;
       const card = target.closest<HTMLElement>(".project-card");
       if (!card || !track.contains(card)) return;
       resetViewportScroll();
