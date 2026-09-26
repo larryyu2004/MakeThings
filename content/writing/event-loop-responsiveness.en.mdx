@@ -1,0 +1,53 @@
+import Link from "next/link";
+
+# How the event loop affects page responsiveness
+
+Why can a button change the DOM immediately while the screen appears unchanged? My earlier event-loop notes explained queues, but treated Chrome's internal threads and queue priorities as fixed rules. For a page, the useful question is simpler: **when does JavaScript give the browser a chance to handle input and present a frame?**
+
+## A task, then microtasks
+
+A click handler runs as a task. When its JavaScript stack finishes, the browser runs pending microtasks, including promise callbacks. It may then update rendering before taking another task. This small example runs in a browser console:
+
+```js
+console.log("handler");
+setTimeout(() => console.log("timer"), 0);
+queueMicrotask(() => console.log("microtask"));
+console.log("handler ends");
+// handler → handler ends → microtask → timer
+```
+
+The timer's zero delay makes its callback eligible for a later task; it does not interrupt the current one. The example establishes this ordering, not an exact time for the timer or a promise that a frame appears between the two callbacks. Browsers can use multiple task sources, so a single universal FIFO queue is an incomplete model.
+
+<Key>Microtasks run before the browser moves on to another task. If code keeps scheduling more microtasks, it can also postpone rendering and input.</Key>
+
+## A DOM change is not a displayed frame
+
+Save the following as an HTML file and click the button. The heading changes in the DOM before the loop, but the browser cannot normally present the new frame until the handler returns. The 1.5-second loop is intentionally bad code for demonstration.
+
+```html
+<h1 id="status">Ready</h1>
+<button id="start">Start</button>
+<script>
+  document.querySelector("#start").addEventListener("click", () => {
+    document.querySelector("#status").textContent = "Working";
+    const end = performance.now() + 1500;
+    while (performance.now() < end) {} // Demonstration: blocks the main thread.
+  });
+</script>
+```
+
+The browser has recorded the text change, but the same main thread is still occupied. It cannot promptly process another click or perform the work needed for that frame. This connects to my <Link href="/en/writing/browser-rendering">browser rendering article</Link>: changing the DOM and showing pixels are separate steps.
+
+## Designing around the gap
+
+For visual work, `requestAnimationFrame` schedules a callback before a future repaint; it does not make expensive work cheap. For a long calculation, split it into bounded pieces that yield between tasks, or move suitable computation into a Web Worker. A worker cannot directly update the DOM, so the main thread still owns the final UI change. Measure on the target device: inspect long tasks, input delay, and frames in a browser performance trace.
+
+## What I learned
+
+“Async” describes how work is scheduled, not a guarantee that the interface stays responsive. A promise callback containing heavy synchronous work still blocks the main thread when it runs. The practical test is whether each piece of work leaves enough time for input and rendering.
+
+### References
+
+- [MDN: In depth: Microtasks and the JavaScript runtime environment](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide/In_depth)
+- [MDN: Using microtasks in JavaScript](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)
+- [MDN: requestAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)

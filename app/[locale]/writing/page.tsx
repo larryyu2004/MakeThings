@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return writingMetadata(
     locale,
     locale === "zh" ? "写作" : "Writing",
-    locale === "zh" ? "关于游戏网络、操作系统和浏览器性能的技术文章。" : "Technical writing on game networking, operating systems, and browser performance.",
+    locale === "zh" ? "关于游戏网络、操作系统、浏览器行为与 Web 架构的技术文章。" : "Technical writing on game networking, operating systems, browser behavior, and web architecture.",
   );
 }
 
@@ -34,7 +34,7 @@ export default async function WritingIndex({ params }: Props) {
       <WritingHeader locale={locale} />
       <main className="writing-page" id="main-content">
         <div className="writing-page__intro">
-          <span className="eyebrow">{locale === "zh" ? "05 / 写作" : "05 / Writing"}</span>
+          <span className="eyebrow">{locale === "zh" ? "04 / 写作" : "04 / Writing"}</span>
           <h1>{locale === "zh" ? "笔记成为文章。" : "Notes into essays."}</h1>
           <p>{locale === "zh" ? "从项目中遇到的问题出发，记录设计选择、技术边界和真正学到的东西。" : "Technical ideas shaped by projects: the design choices, the boundaries, and what the work taught me."}</p>
         </div>

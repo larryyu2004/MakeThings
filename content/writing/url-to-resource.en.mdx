@@ -1,0 +1,49 @@
+import Link from "next/link";
+
+# From a URL to a page resource
+
+Opening a portfolio page seems like one action. In practice, the document, styles, scripts, and images can each require their own retrieval and cache decision. My old networking notes listed protocols and status codes separately. Following one image request makes those pieces easier to connect—and exposes a few claims in the old notes that needed correction.
+
+## Start with the URL
+
+Suppose a page loads `/images/ozwatergame-art.png`. The browser resolves that path against the page's origin, then uses the resulting URL to find or retrieve the image. In the MakeThings site, the image path is a real public asset. This example can run in its browser console:
+
+```js
+const url = new URL("/images/ozwatergame-art.png", location.origin);
+console.log(url.origin, url.pathname);
+fetch(url).then((response) => {
+  console.log(response.status, response.headers.get("content-type"));
+});
+```
+
+The reported status describes the response exposed to `fetch`; developer tools are better for seeing whether a browser cache or the network supplied it. A URL's path identifies the resource at that origin. A query can distinguish a variant. A fragment such as `#details` is handled by the browser and is **not sent in the HTTP request**. Omitting a trailing `/` from a domain URL does not make it invalid.
+
+## The request and the response
+
+If the browser needs the resource from the network, it resolves the host and establishes a connection appropriate for the protocol, then sends a request. The following is a **simplified HTTP/1.1 wire example**, not a capture of MakeThings traffic; HTTP/2 and HTTP/3 encode messages differently.
+
+```http
+GET /images/ozwatergame-art.png HTTP/1.1
+Host: example.com
+
+```
+
+A successful server response can carry an image body and a `Content-Type: image/png` header. `Content-Type` identifies the representation; download behavior can also depend on `Content-Disposition`, browser settings, and context. Status codes tell us the outcome, not the entire story: `200` commonly carries the resource, `404` means the requested resource was not found, and `304` participates in cache validation rather than carrying a new image body.
+
+<Key>One navigation can trigger many requests. The HTML response does not automatically contain every image, stylesheet, or script the page uses.</Key>
+
+## Where caching changes the path
+
+The browser may reuse a fresh cached response without asking the server again. A stale response with a validator can be checked: the browser sends a conditional request, for example with `If-None-Match` and a previously received ETag. If the representation has not changed, the server can reply `304 Not Modified`; the browser uses its stored body. A changed representation is returned with a normal response, commonly `200`.
+
+`Cache-Control: no-cache` allows storage but requires validation before reuse; it is not the same as `no-store`. Actual behavior depends on response headers and cache state, so I inspect the Network panel rather than guessing from a filename. Once resources arrive, parsing and drawing are another story, covered in my <Link href="/en/writing/browser-rendering">browser rendering article</Link>.
+
+## What I learned
+
+The useful unit of analysis is a **particular resource request**: its URL, initiator, response, and cache decision. That explains a missing image or an unexpectedly stale asset more precisely than memorizing a list of HTTP methods and status codes.
+
+### References
+
+- [MDN: URI fragments](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment)
+- [MDN: HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching)
+- [MDN: ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag)

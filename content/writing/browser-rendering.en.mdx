@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 # How a browser turns a page into pixels
 
 A browser does not draw an HTML file directly. It parses resources, computes styles, lays out boxes, paints visual instructions, and presents the result. The original notes described eight fixed stages; that is a useful mental model, but real browser engines can schedule, skip, combine, and repeat work differently. This article keeps the model while separating guarantees from implementation details.
@@ -35,6 +37,8 @@ Changing an element's width usually requires layout, followed by further visual 
 JavaScript, style, layout, and much of paint preparation compete for time on the page's main thread. A long task can delay event handling and the work needed for a new frame. Moving an element with `transform` may reduce layout work, but it does not make a blocked main thread irrelevant to every animation or interaction.
 
 For an interactive page, the practical approach is to measure what actually runs. Record a performance trace, look for long tasks, repeated layout, large paint areas, and excess layers, then change one cause at a time. Prefer transform and opacity for motion when they produce the intended result, and check the page on the devices that matter.
+
+The timing of that work also matters. My <Link href="/en/writing/event-loop-responsiveness">event-loop article</Link> follows a click handler through tasks, microtasks, and the next opportunity to show a frame.
 
 ## What I learned
 

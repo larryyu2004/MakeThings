@@ -1,7 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { writingArticles } from "@/lib/writing-articles";
 import { writingPath, type WritingSlug } from "@/lib/writing-path";
 import {
   achievements,
@@ -24,9 +26,9 @@ import {
 } from "@/components/icons";
 
 type Theme = "light" | "dark";
-type SectionId = "work" | "stack" | "about" | "contact";
+type SectionId = "work" | "stack" | "about" | "writing" | "contact";
 
-const sectionIds: SectionId[] = ["work", "stack", "about", "contact"];
+const sectionIds: SectionId[] = ["work", "stack", "about", "writing", "contact"];
 
 function readStorage(key: string): string | null {
   try {
@@ -175,6 +177,7 @@ function Header({
     { id: "work", label: t.nav.work },
     { id: "stack", label: t.nav.stack },
     { id: "about", label: t.nav.about },
+    { id: "writing", label: t.nav.writing },
     { id: "contact", label: t.nav.contact },
   ];
 
@@ -209,7 +212,6 @@ function Header({
               {item.label}
             </a>
           ))}
-          <a className="nav__link" href={writingPath(locale)} onClick={closeMenu}>{t.nav.writing}</a>
         </nav>
 
         <div className="topbar__actions">
@@ -714,6 +716,41 @@ function ContactSection({ locale }: { locale: Locale }) {
   );
 }
 
+function WritingSection({ locale }: { locale: Locale }) {
+  const t = copy[locale];
+  const [revealRef, revealVisible] = useReveal<HTMLDivElement>();
+
+  return (
+    <section className="section section--rule section--numbered" id="writing" aria-labelledby="writing-title">
+      <SectionNumberDecoration number="04" />
+      <SectionHeading
+        id="writing-title"
+        number={t.sections.writing.number}
+        title={t.sections.writing.title}
+        aside={t.sections.writing.aside}
+      />
+      <div ref={revealRef} className={`writing-home ${revealClassName(revealVisible)}`}>
+        <div className="writing-list" aria-label={locale === "zh" ? "精选文章" : "Selected writing"}>
+          {writingArticles.slice(0, 3).map((article, index) => (
+            <Link className="writing-card" href={writingPath(locale, article.slug)} key={article.slug}>
+              <span className="writing-card__number mono">{String(index + 1).padStart(2, "0")}</span>
+              <span className="writing-card__category mono">{article.category[locale]}</span>
+              <span className="writing-card__body">
+                <strong>{article.title[locale]}</strong>
+                <span>{article.summary[locale]}</span>
+              </span>
+              <span className="writing-card__arrow" aria-hidden="true">↗</span>
+            </Link>
+          ))}
+        </div>
+        <Link className="writing-home__all mono" href={writingPath(locale)}>
+          {t.sections.writing.allArticles} <span aria-hidden="true">→</span>
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 export default function Portfolio() {
   const [locale, setLocale] = useState<Locale>("en");
   const [theme, setTheme] = useState<Theme>("light");
@@ -775,6 +812,7 @@ export default function Portfolio() {
         <ProjectsSection locale={locale} theme={theme} />
         <StackSection locale={locale} theme={theme} />
         <AboutSection locale={locale} theme={theme} />
+        <WritingSection locale={locale} />
         <ContactSection locale={locale} />
       </main>
       <footer className="footer">

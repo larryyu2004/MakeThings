@@ -1,0 +1,53 @@
+import Link from "next/link";
+
+# 事件循环怎样影响页面响应
+
+为什么点击按钮后，DOM 已经改了，屏幕却像没有变化？我以前的事件循环笔记画了许多队列，却把 Chrome 内部线程和队列优先级写得像固定规则。对页面开发来说，更有用的问题是：**JavaScript 什么时候把机会交还给浏览器，让它处理输入并显示新画面？**
+
+## 一个任务，接着是微任务
+
+点击处理函数作为一个任务运行。它的 JavaScript 调用栈结束后，浏览器会处理待执行的微任务，包括 Promise 回调；随后可能更新画面，再处理下一个任务。下面的代码可以直接放进浏览器控制台：
+
+```js
+console.log("handler");
+setTimeout(() => console.log("timer"), 0);
+queueMicrotask(() => console.log("microtask"));
+console.log("handler ends");
+// handler → handler ends → microtask → timer
+```
+
+定时器的零延迟只表示回调可以在稍后的任务中执行；它不会打断当前任务。这个例子说明执行顺序，却不保证定时器的精确时间，也不保证两个回调之间一定显示一帧。浏览器可以使用多个任务来源，因此“只有一条先进先出的队列”并不足以描述真实调度。
+
+<Key>微任务会在浏览器处理下一个任务之前运行。如果代码不断加入新的微任务，也可能让画面更新和输入处理一直等待。</Key>
+
+## 修改 DOM 不等于显示新画面
+
+把下面的内容保存成 HTML 文件并点击按钮。标题会先在 DOM 中改变，但处理函数返回之前，浏览器通常无法显示更新后的画面。这里的 1.5 秒循环是刻意使用的反面示例。
+
+```html
+<h1 id="status">Ready</h1>
+<button id="start">Start</button>
+<script>
+  document.querySelector("#start").addEventListener("click", () => {
+    document.querySelector("#status").textContent = "Working";
+    const end = performance.now() + 1500;
+    while (performance.now() < end) {} // 演示用：阻塞主线程。
+  });
+</script>
+```
+
+浏览器已经记录文字变化，但主线程仍被循环占用，无法及时处理下一次点击或完成显示这一帧所需的工作。这也连接到我的<Link href="/zh/writing/browser-rendering">浏览器渲染文章</Link>：修改 DOM 与把像素显示出来是两个步骤。
+
+## 为这段间隙设计
+
+`requestAnimationFrame` 可以把视觉更新安排在未来一次重绘之前，但不会让耗时计算凭空变快。长计算可以拆成有时间上限的小段，在任务之间让出执行机会；合适的计算也可以放进 Web Worker。Worker 不能直接修改 DOM，最终界面更新仍由主线程负责。应在目标设备上记录性能轨迹，查看长任务、输入延迟和帧的实际情况。
+
+## 我的收获
+
+“异步”描述的是任务安排方式，不能保证界面始终流畅。Promise 回调里若有耗时的同步代码，它执行时仍会阻塞主线程。真正需要检查的是：每段工作是否给输入处理和画面更新留下了时间。
+
+### 参考资料
+
+- [MDN：微任务与 JavaScript 运行环境](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide/In_depth)
+- [MDN：在 JavaScript 中使用微任务](https://developer.mozilla.org/en-US/docs/Web/API/HTML_DOM_API/Microtask_guide)
+- [MDN：requestAnimationFrame](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestAnimationFrame)

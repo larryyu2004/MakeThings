@@ -81,6 +81,12 @@ export type PortfolioCopy = {
       recognitionLabel: string;
       achievementsLabel: string;
     };
+    writing: {
+      number: string;
+      title: string;
+      aside: string;
+      allArticles: string;
+    };
   };
   visuals: {
     stackAlt: string;
@@ -115,8 +121,8 @@ export const copy: Record<Locale, PortfolioCopy> = {
       work: "01 Projects",
       stack: "02 Stack",
       about: "03 About",
-      contact: "04 Contact",
-      writing: "05 Writing",
+      contact: "05 Contact",
+      writing: "04 Writing",
     },
     controls: {
       language: "Language",
@@ -163,6 +169,12 @@ export const copy: Record<Locale, PortfolioCopy> = {
         recognitionLabel: "Recognition",
         achievementsLabel: "Awards and achievements",
       },
+      writing: {
+        number: "04 / Writing",
+        title: "Writing",
+        aside: "Notes from building games, kernels and interfaces — the decisions behind the finished work.",
+        allArticles: "Explore all writing",
+      },
     },
     visuals: {
       stackAlt: "Hand-drawn system map connecting AI agents, interactive web and 3D, low-level systems, testing tools and visual design",
@@ -177,7 +189,7 @@ export const copy: Record<Locale, PortfolioCopy> = {
       readArticle: "Read related article",
     },
     contact: {
-      number: "04 / Contact",
+      number: "05 / Contact",
       title: "Let's build\nsomething.",
       subtitle:
         "Based in Adelaide and interested in interactive systems, AI engineering and software that helps people make better decisions.",
@@ -196,8 +208,8 @@ export const copy: Record<Locale, PortfolioCopy> = {
       work: "01 项目",
       stack: "02 技术栈",
       about: "03 关于",
-      contact: "04 联系",
-      writing: "05 写作",
+      contact: "05 联系",
+      writing: "04 写作",
     },
     controls: {
       language: "语言",
@@ -240,6 +252,12 @@ export const copy: Record<Locale, PortfolioCopy> = {
         recognitionLabel: "荣誉与认可",
         achievementsLabel: "荣誉与成就",
       },
+      writing: {
+        number: "04 / 写作",
+        title: "写作",
+        aside: "记录我构建游戏、内核与界面时的思考，以及成品背后的技术决策。",
+        allArticles: "查看全部文章",
+      },
     },
     visuals: {
       stackAlt: "手绘系统图，将 AI 智能体、交互式网页与 3D、底层系统、测试工具和视觉设计连接起来",
@@ -254,7 +272,7 @@ export const copy: Record<Locale, PortfolioCopy> = {
       readArticle: "阅读相关文章",
     },
     contact: {
-      number: "04 / 联系",
+      number: "05 / 联系",
       title: "一起构建\n一些东西。",
       subtitle:
         "我目前在阿德莱德，关注交互系统、AI 工程，以及帮助人们做出更好决策的软件。",

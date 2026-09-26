@@ -1,0 +1,41 @@
+# 在 MakeThings 中划分 Server 与 Client 组件
+
+我以前的 Next.js 教程把组件概括为“Server 负责 SEO，Client 负责交互”。这个说法太粗略：Client 组件也可以参与生成首屏 HTML。真正需要决定的是代码在哪里运行、能访问什么，以及哪些 JavaScript 会送到浏览器。MakeThings 的文章系统提供了一个具体例子。
+
+## 文章页负责路由和内容
+
+Writing 路由解析语言与文章 slug，查找文章并渲染对应的 MDX，同时生成页面元数据。这些工作放在 Server 组件中，因为它们不需要点击处理、React 状态或 `window`。路由通过 `generateStaticParams` 在构建时列出已知的中英文路径，并用 `dynamicParams = false` 限定文章集合。
+
+文章注册表保持简洁：每篇文章有一个 slug、中英文标题与摘要，以及两份 MDX 正文。页面根据 URL 里的语言选择内容。这样，每种语言都有可直接访问的地址，语言切换也有稳定的目标。
+
+```text
+/en/writing/event-loop-responsiveness
+          语言 ───────┘  └──── 文章 slug
+/zh/writing/event-loop-responsiveness
+```
+
+上面只是路由示意，并不表示每次访问都要请求两种语言。实际页面从注册表选择并渲染当前语言的正文。
+
+## 页头负责浏览器交互
+
+共享的 `WritingHeader` 是 Client 组件。它处理主题按钮，把所选语言写入 `localStorage`，并链接到同一篇文章的另一种语言。`localStorage` 是浏览器 API，纯 Server 组件不能在渲染时使用它。页面还会通过一个简短的启动脚本尽早读取已保存的主题，让交互控件准备好之前就应用对应样式。
+
+<Key>“Client 组件”不等于“JavaScript 加载前页面空白”。Next.js 可以先把它的 HTML 放进初始响应，再通过 hydration 让控件能够交互。</Key>
+
+首页采用了更大的 Client 边界：交互式项目展示、元素出现效果、语言状态和主题状态都在 `Portfolio` 中。这是当前实现的选择，并非所有作品集都必须采用一个较大的 Client 组件。文章路由则把长篇正文留在这块交互模块之外。
+
+## 边界之间传递什么
+
+Server 组件可以渲染 Client 组件，并传入当前语言、slug 等可序列化的属性。文件顶部的 `"use client"` 定义客户端模块图的入口；从该文件引入的模块也可能进入浏览器代码。因此，让路由负责文章查找与 MDX 渲染，让页头只负责需要浏览器状态的控件，是一个清楚的划分。
+
+这也修正了我过去的误解：Client 组件可以预先渲染为 HTML，而 Server 组件的实现代码仍留在服务器端。“在哪里生成 HTML”和“组件代码在哪里运行”有关联，却不是同一个概念。
+
+## 我的收获
+
+现在我会先问：**哪一部分确实需要浏览器状态或事件处理？**文章页负责内容、路径和元数据；页头负责交互。这样，组件边界由实际职责决定，而不是由“Server 一定快、Client 一定慢”的口号决定。
+
+### 参考资料
+
+- [Next.js：Server 与 Client 组件](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [Next.js：Server 与 Client 边界](https://nextjs.org/docs/app/guides/server-and-client-boundary)
+- [Next.js：generateStaticParams](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)

@@ -1,0 +1,41 @@
+# Drawing the Server–Client boundary in MakeThings
+
+My old Next.js tutorial divided components into “server = SEO” and “client = interactivity.” That shortcut hides the real design choice. A Client Component can contribute HTML to the initial page too; the distinction is where its code runs, what it can access, and what JavaScript reaches the browser. MakeThings gives me a concrete way to draw that line.
+
+## The article page owns the route
+
+The Writing route resolves a locale and slug, looks up the article, and renders its MDX content. It also generates the article's metadata. Those jobs live in a Server Component: they do not need a click handler, React state, or `window`. The route generates the known English and Chinese paths at build time with `generateStaticParams`, and `dynamicParams = false` keeps unknown slugs out of this collection.
+
+The registry is deliberately small: each article has one slug, bilingual title and summary, and two MDX files. A page can choose the appropriate content using the URL's locale. That gives a direct URL for each language and a stable target for a language switch.
+
+```text
+/en/writing/event-loop-responsiveness
+          locale ───────┘  └──── article slug
+/zh/writing/event-loop-responsiveness
+```
+
+This is a route sketch, not a request to fetch both languages on every visit. The actual page imports the registered content and renders the selected version.
+
+## The header owns browser interaction
+
+The shared `WritingHeader` is a Client Component. It handles the theme button, writes the selected locale to `localStorage`, and links to the equivalent article in the other language. `localStorage` is a browser API; a server-only component cannot use it during rendering. The initial theme is also read by a small bootstrap script so the page can apply the saved preference before interactive controls are ready.
+
+<Key>“Client Component” does not mean “blank until JavaScript loads.” Next.js can include its HTML in the initial response, then hydrate it so controls work.</Key>
+
+The homepage takes a broader client boundary: its interactive project presentation, reveal behavior, locale state, and theme state live together in `Portfolio`. That is a choice made by this implementation, not a rule that every portfolio must use one large Client Component. The article routes keep their long-form content outside that interactive module.
+
+## What crosses the boundary
+
+A Server Component can render a Client Component and pass serializable props such as the current locale and slug. Marking a file with `"use client"` defines an entry point into the client module graph; imports from that file can join the browser bundle. It is therefore useful to keep article lookup and MDX rendering in the route, and leave only the controls that need browser state in the header.
+
+This boundary also prevents an old misconception: a Client Component can be pre-rendered to HTML, while a Server Component's implementation stays on the server. Rendering location and component type are related, but they are not interchangeable terms.
+
+## What I learned
+
+I now start with ownership: **which part needs browser state or an event handler?** The article page owns content, paths, and metadata; the header owns interaction. This makes the component split explainable from actual behavior rather than from a blanket “server is fast, client is slow” rule.
+
+### References
+
+- [Next.js: Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)
+- [Next.js: The Server and Client Boundary](https://nextjs.org/docs/app/guides/server-and-client-boundary)
+- [Next.js: generateStaticParams](https://nextjs.org/docs/app/api-reference/functions/generate-static-params)

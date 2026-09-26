@@ -1,0 +1,49 @@
+import Link from "next/link";
+
+# 从 URL 到页面资源
+
+打开作品集页面看起来只是一个动作，但文档、样式、脚本和图片都可能各自经历获取与缓存判断。我过去的网络笔记把协议和状态码分开罗列。跟随一次图片请求，更容易看清它们怎样连在一起，也能修正旧笔记里的几个错误说法。
+
+## 从 URL 开始
+
+假设页面加载 `/images/ozwatergame-art.png`。浏览器会以当前页面的来源为基础解析这个路径，再根据得到的 URL 查找或获取图片。这是 MakeThings 中实际存在的公开资源；下面的代码可以在网站的浏览器控制台运行：
+
+```js
+const url = new URL("/images/ozwatergame-art.png", location.origin);
+console.log(url.origin, url.pathname);
+fetch(url).then((response) => {
+  console.log(response.status, response.headers.get("content-type"));
+});
+```
+
+这里输出的状态码是 `fetch` 得到的响应状态。要判断资源来自浏览器缓存还是网络，开发者工具更合适。URL 的路径标识该来源下的资源，查询参数可以区分不同版本；`#details` 这样的片段由浏览器处理，**不会随 HTTP 请求发送到服务器**。域名后面没有写 `/`，也不会让 URL 变成无效地址。
+
+## 请求与响应
+
+如果浏览器需要从网络获取资源，它会解析主机、建立与所用协议相应的连接，再发送请求。以下是**简化的 HTTP/1.1 报文示意**，并非 MakeThings 的流量记录；HTTP/2 与 HTTP/3 的消息编码方式不同。
+
+```http
+GET /images/ozwatergame-art.png HTTP/1.1
+Host: example.com
+
+```
+
+成功的响应可以带回图片内容和 `Content-Type: image/png`。`Content-Type` 表示资源的媒体类型；是否触发下载，还可能与 `Content-Disposition`、浏览器设置和使用场景有关。状态码说明请求结果，却不能单独解释全部过程：`200` 通常带回资源，`404` 表示未找到请求的资源，`304` 用于缓存验证，不携带新的图片正文。
+
+<Key>一次页面导航可能引出许多请求。HTML 响应不会自动包含页面使用的每张图片、每份样式和脚本。</Key>
+
+## 缓存怎样改变请求路径
+
+浏览器可能直接复用仍然新鲜的缓存响应，无需再询问服务器。若缓存已过期但有验证标识，浏览器可以发出条件请求，例如带上之前收到的 ETag，使用 `If-None-Match` 请求头。资源没有变化时，服务器可返回 `304 Not Modified`，浏览器继续使用保存的正文；资源变化时则返回新内容，常见状态是 `200`。
+
+`Cache-Control: no-cache` 允许存储，但重用前需要验证；它与 `no-store` 不同。实际行为取决于响应头和缓存状态，所以我会打开 Network 面板检查，而不根据文件名猜测。资源抵达后的解析与绘制，则在我的<Link href="/zh/writing/browser-rendering">浏览器渲染文章</Link>中讨论。
+
+## 我的收获
+
+排查问题时，最有用的单位是**某一个资源请求**：它的 URL、发起方、响应和缓存决策。这样比背诵 HTTP 方法与状态码列表，更能解释图片为什么缺失，或为什么仍显示旧版本。
+
+### 参考资料
+
+- [MDN：URI 片段](https://developer.mozilla.org/en-US/docs/Web/URI/Reference/Fragment)
+- [MDN：HTTP 缓存](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching)
+- [MDN：ETag](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/ETag)

@@ -583,7 +583,8 @@ html[data-theme="dark"] .hero::after {
 .section--numbered > .projects-pin,
 .section--numbered > .section-heading,
 .section--numbered > .notes-layout,
-.section--numbered > .about-grid {
+.section--numbered > .about-grid,
+.section--numbered > .writing-home {
   position: relative;
   z-index: 1;
 }
@@ -1010,7 +1011,7 @@ html[data-theme="dark"] .notes-image__marker {
   top: clamp(-3rem, -2vw, -1rem);
   right: clamp(-3rem, -2vw, -1rem);
   color: var(--number-blue);
-  content: "04";
+  content: "05";
   font-family: var(--display);
   font-size: clamp(12rem, 28vw, 28rem);
   line-height: 0.7;
@@ -1564,6 +1565,30 @@ html[data-theme="dark"] .notes-image__marker {
 
 .writing-list {
   border-top: 1px solid var(--line);
+}
+
+.writing-home {
+  position: relative;
+}
+
+.writing-home__all {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  width: fit-content;
+  min-width: min(100%, 18rem);
+  margin: 1.5rem 0 0 auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--line);
+  color: var(--blue-deep);
+  background: var(--surface-strong);
+  text-transform: uppercase;
+  transition: background var(--fast) ease;
+}
+
+.writing-home__all:hover,
+.writing-home__all:focus-visible {
+  background: var(--active-bg);
 }
 
 .writing-card {
