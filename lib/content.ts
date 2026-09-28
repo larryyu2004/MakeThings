@@ -13,6 +13,7 @@ export type Project = {
   alt: LocalizedText;
   ariaLabel: LocalizedText;
   href?: string;
+  video?: { src: string; width: number; height: number };
   image: string;
   darkImage: string;
   width: number;
@@ -292,7 +293,7 @@ export const copy: Record<Locale, PortfolioCopy> = {
 export const projects: Project[] = [
   {
     id: "ozwatergame",
-    title: { en: "ozWaterGame", zh: "ozWaterGame" },
+    title: { en: "WaterGame", zh: "WaterGame" },
     tag: {
       en: "Research / Multiplayer / Unity",
       zh: "研究 / 多人游戏 / Unity",
@@ -311,6 +312,7 @@ export const projects: Project[] = [
     },
     image: "/images/ozwatergame-art.png",
     darkImage: "/images/ozwatergame-art-dark.png",
+    video: { src: "/videos/ozwatergame.mp4", width: 1620, height: 1080 },
     width: 1536,
     height: 1024,
     variant: "wide",
@@ -342,6 +344,31 @@ export const projects: Project[] = [
     variant: "hero",
   },
   {
+    id: "dead-trace",
+    title: { en: "DEAD TRACE", zh: "DEAD TRACE" },
+    tag: {
+      en: "3D Gameplay / Unity / C#",
+      zh: "3D 游戏玩法 / Unity / C#",
+    },
+    description: {
+      en: "A third-person investigation prototype with firearm systems, rotating light puzzles, clue progression and an unlockable exit.",
+      zh: "一款第三人称调查游戏原型，包含枪械系统、旋转灯光谜题、线索推进与可解锁的出口。",
+    },
+    alt: {
+      en: "Hand-drawn illustration of an armed investigator between a red-lit wooden structure and an amber spotlight aimed toward a locked gate",
+      zh: "手绘插画：持枪调查者站在红光照亮的木屋与指向锁闭大门的琥珀色聚光灯之间。",
+    },
+    ariaLabel: {
+      en: "Play the DEAD TRACE project video",
+      zh: "播放 DEAD TRACE 项目视频",
+    },
+    image: "/images/dead-trace-art.png",
+    darkImage: "/images/dead-trace-art-dark.png",
+    video: { src: "/videos/dead-trace.mp4", width: 1280, height: 720 },
+    width: 1536,
+    height: 1024,
+  },
+  {
     id: "bridge",
     title: { en: "BRIDGE", zh: "BRIDGE" },
     tag: {
@@ -357,11 +384,12 @@ export const projects: Project[] = [
       zh: "展示 BRIDGE 通过类型化工具、浏览器工作流和审查门连接三个 AI 编程环境的手绘编辑插画。",
     },
     ariaLabel: {
-      en: "Ask about the BRIDGE project",
-      zh: "了解 BRIDGE 项目",
+      en: "Play the BRIDGE project video",
+      zh: "播放 BRIDGE 项目视频",
     },
     image: "/images/bridge-mcp-art.png",
     darkImage: "/images/bridge-mcp-art-dark.png",
+    video: { src: "/videos/bridge.mp4", width: 1280, height: 720 },
     width: 1619,
     height: 971,
   },

@@ -334,7 +334,7 @@ function ProjectCard({ project, locale, theme }: { project: Project; locale: Loc
   const videoDialogRef = useRef<HTMLDialogElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const title = localized(project.title, locale);
-  const hasVideo = project.id === "ozwatergame";
+  const video = project.video;
   const relatedArticle: WritingSlug | undefined = project.id === "ozwatergame"
     ? "unity-lan-discovery"
     : project.id === "risc-v-kernel"
@@ -380,7 +380,7 @@ function ProjectCard({ project, locale, theme }: { project: Project; locale: Loc
       ref={revealRef}
       className={`project-card${project.variant ? ` project-card--${project.variant}` : ""} ${revealClassName(revealVisible)}`}
     >
-      {hasVideo ? (
+      {video ? (
         <button className="project-card__primary" type="button" aria-label={localized(project.ariaLabel, locale)} onClick={openVideo}>
           {cardContent}
         </button>
@@ -394,11 +394,11 @@ function ProjectCard({ project, locale, theme }: { project: Project; locale: Loc
           {copy[locale].links.readArticle} <span aria-hidden="true">↗</span>
         </a>
       )}
-      {hasVideo && (
+      {video && (
         <dialog
           ref={videoDialogRef}
           className="project-video"
-          aria-label={locale === "zh" ? "ozWaterGame 项目视频" : "ozWaterGame project video"}
+          aria-label={locale === "zh" ? `${title} 项目视频` : `${title} project video`}
           onClick={(event) => {
             if (event.target === event.currentTarget) closeVideo();
           }}
@@ -409,13 +409,20 @@ function ProjectCard({ project, locale, theme }: { project: Project; locale: Loc
         >
           <div className="project-video__content">
             <div className="project-video__header">
-              <span className="mono">ozWaterGame / Video</span>
+              <span className="mono">{title} / Video</span>
               <button className="project-video__close" type="button" onClick={closeVideo} aria-label={locale === "zh" ? "关闭视频" : "Close video"}>
                 <span aria-hidden="true">×</span>
               </button>
             </div>
-            <video ref={videoRef} controls playsInline preload="none" poster={theme === "dark" ? project.darkImage : project.image}>
-              <source src="/videos/ozwatergame.mp4" type="video/mp4" />
+            <video
+              ref={videoRef}
+              controls
+              playsInline
+              preload="none"
+              poster={theme === "dark" ? project.darkImage : project.image}
+              style={{ aspectRatio: `${video.width} / ${video.height}` }}
+            >
+              <source src={video.src} type="video/mp4" />
               {locale === "zh" ? "浏览器不支持视频播放。" : "Your browser does not support video playback."}
             </video>
           </div>
@@ -444,6 +451,7 @@ function ProjectsSection({ locale, theme }: { locale: Locale; theme: Theme }) {
     let active = false;
     let sectionStart = 0;
     let scrollRange = 0;
+    let edgeScrollDistance = 0;
     let maxOffset = 0;
     let targetOffset = 0;
     let currentOffset = 0;
@@ -481,8 +489,8 @@ function ProjectsSection({ locale, theme }: { locale: Locale; theme: Theme }) {
     const updateTarget = () => {
       if (!active) return;
       resetViewportScroll();
-      const progress = scrollRange > 0
-        ? clamp((window.scrollY - (sectionStart - getTopbarHeight())) / scrollRange, 0, 1)
+      const progress = maxOffset > 0
+        ? clamp((window.scrollY - (sectionStart - getTopbarHeight()) - edgeScrollDistance) / maxOffset, 0, 1)
         : 0;
       targetOffset = progress * maxOffset;
       requestRender();
@@ -494,11 +502,12 @@ function ProjectsSection({ locale, theme }: { locale: Locale; theme: Theme }) {
       const topbarHeight = getTopbarHeight();
       const pinHeight = Math.max(320, window.innerHeight - topbarHeight);
       maxOffset = Math.max(0, track.scrollWidth - viewport.clientWidth);
-      scrollRange = maxOffset;
+      edgeScrollDistance = maxOffset > 0 ? Math.min(pinHeight * 0.75, 600) : 0;
+      scrollRange = maxOffset + edgeScrollDistance * 2;
       sectionStart = window.scrollY + section.getBoundingClientRect().top;
       section.style.setProperty("--topbar-height", `${topbarHeight}px`);
       section.style.setProperty("--projects-pin-height", `${pinHeight}px`);
-      section.style.setProperty("--projects-scroll-distance", `${maxOffset}px`);
+      section.style.setProperty("--projects-scroll-distance", `${scrollRange}px`);
       currentOffset = clamp(currentOffset, 0, maxOffset);
       track.style.transform = `translate3d(${-currentOffset}px, 0, 0)`;
       updateTarget();
@@ -555,7 +564,7 @@ function ProjectsSection({ locale, theme }: { locale: Locale; theme: Theme }) {
       window.requestAnimationFrame(resetViewportScroll);
       const desiredOffset = clamp(card.offsetLeft - (viewport.clientWidth - card.offsetWidth) / 2, 0, maxOffset);
       window.scrollTo({
-        top: sectionStart - getTopbarHeight() + desiredOffset,
+        top: sectionStart - getTopbarHeight() + edgeScrollDistance + desiredOffset,
         behavior: "smooth",
       });
     };
