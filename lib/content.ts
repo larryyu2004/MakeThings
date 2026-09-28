@@ -111,7 +111,7 @@ export type PortfolioCopy = {
     phoneTitle: string;
     profilesLabel: string;
     profilesTitle: string;
-    profilesDescription: string;
+    profilesPortfolioLabel: string;
   };
   footer: string;
 };
@@ -200,7 +200,7 @@ export const copy: Record<Locale, PortfolioCopy> = {
       phoneTitle: "Call Larry",
       profilesLabel: "03 / Profiles",
       profilesTitle: "Find the work",
-      profilesDescription: "LinkedIn · GitHub · Blog · Therookies\nProfile URLs to add",
+      profilesPortfolioLabel: "Portfolio",
     },
     footer: "Software / interactive systems / AI engineering.",
   },
@@ -283,7 +283,7 @@ export const copy: Record<Locale, PortfolioCopy> = {
       phoneTitle: "致电 Larry",
       profilesLabel: "03 / 主页",
       profilesTitle: "查看作品",
-      profilesDescription: "LinkedIn · GitHub · 博客 · Therookies\n待补充主页链接",
+      profilesPortfolioLabel: "作品集",
     },
     footer: "软件 / 交互系统 / AI 工程。",
   },

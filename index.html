@@ -1215,6 +1215,26 @@
         word-break: break-word;
       }
 
+      .profile-links {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem 1rem;
+        font-family: var(--mono);
+        font-size: 0.75rem;
+      }
+
+      .profile-links a {
+        color: var(--blue);
+        text-decoration: underline;
+        text-underline-offset: 0.2em;
+      }
+
+      .profile-links a:hover,
+      .profile-links a:focus-visible {
+        color: var(--blue-deep);
+      }
+
       .footer {
         display: flex;
         justify-content: space-between;
@@ -2256,10 +2276,11 @@
                   <path d="M5 5h14v14H5zM8 9h8M8 12h6M8 15h4" /></svg
               ></span>
               <strong>Find the work</strong>
-              <span
-                >LinkedIn · GitHub · Blog · Therookies<br />Profile URLs to
-                add</span
-              >
+              <div class="profile-links">
+                <a href="https://www.linkedin.com/in/larry-yu-29b19133b/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+                <a href="https://github.com/larryyu2004" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a href="https://makethings.vercel.app/" target="_blank" rel="noopener noreferrer">Portfolio</a>
+              </div>
             </div>
           </div>
         </div>
@@ -2382,7 +2403,7 @@
           { selector: ".contact-link:nth-child(2) strong", en: "Call Larry", zh: "致电 Larry" },
           { selector: ".contact-link:nth-child(3) .contact-link__top .mono", en: "03 / Profiles", zh: "03 / 主页" },
           { selector: ".contact-link:nth-child(3) strong", en: "Find the work", zh: "查看作品" },
-          { selector: ".contact-link:nth-child(3) > span:last-child", en: "LinkedIn · GitHub · Blog · Therookies<br />Profile URLs to add", zh: "LinkedIn · GitHub · 博客 · Therookies<br />待补充主页链接", mode: "html" },
+          { selector: ".profile-links a:nth-child(3)", en: "Portfolio", zh: "作品集" },
           { selector: ".footer__note", en: "Software / interactive systems / AI engineering.", zh: "软件 / 交互系统 / AI 工程。" },
         ];
         const localizedAttributes = [

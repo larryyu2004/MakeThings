@@ -715,7 +715,6 @@ function ContactSection({ locale }: { locale: Locale }) {
   const t = copy[locale];
   const [revealRef, revealVisible] = useReveal<HTMLDivElement>();
   const titleLines = t.contact.title.split("\n");
-  const profileLines = t.contact.profilesDescription.split("\n");
   return (
     <section className="section section--rule" id="contact" aria-labelledby="contact-title">
       <div ref={revealRef} className={`contact-panel ${revealClassName(revealVisible)}`}>
@@ -752,14 +751,11 @@ function ContactSection({ locale }: { locale: Locale }) {
               <DocumentIcon />
             </span>
             <strong>{t.contact.profilesTitle}</strong>
-            <span>
-              {profileLines.map((line) => (
-                <span key={line}>
-                  {line}
-                  <br />
-                </span>
-              ))}
-            </span>
+            <div className="profile-links">
+              <a href="https://www.linkedin.com/in/larry-yu-29b19133b/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              <a href="https://github.com/larryyu2004" target="_blank" rel="noopener noreferrer">GitHub</a>
+              <a href="https://makethings.vercel.app/" target="_blank" rel="noopener noreferrer">{t.contact.profilesPortfolioLabel}</a>
+            </div>
           </div>
         </div>
       </div>

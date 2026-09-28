@@ -1165,6 +1165,26 @@ html[data-theme="dark"] .notes-image__marker {
   word-break: break-word;
 }
 
+.profile-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+}
+
+.profile-links a {
+  color: var(--blue);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.profile-links a:hover,
+.profile-links a:focus-visible {
+  color: var(--blue-deep);
+}
+
 .footer {
   display: flex;
   justify-content: space-between;
