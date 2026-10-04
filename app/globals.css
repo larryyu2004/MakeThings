@@ -1000,27 +1000,31 @@ html[data-theme="dark"] .notes-image__marker {
 }
 
 .timeline__item {
+  --timeline-date-inset: 1rem;
   position: relative;
   display: grid;
   grid-template-columns: minmax(9.5rem, 0.42fr) minmax(0, 1fr);
   gap: clamp(1rem, 2vw, 1.5rem);
-  padding: 1.1rem 0 1.1rem 1rem;
+  padding: 1.1rem 0 1.1rem var(--timeline-date-inset);
   border-bottom: 1px dashed var(--line);
 }
 
-.timeline__item::before {
+.timeline__date::before {
   position: absolute;
-  top: 1.55rem;
-  left: -0.45rem;
+  top: 50%;
+  left: calc(-1 * var(--timeline-date-inset) - 0.45rem);
   width: 0.65rem;
   height: 0.65rem;
   border: 2px solid var(--blue);
   border-radius: 50%;
   background: var(--paper);
+  transform: translateY(-50%);
   content: "";
 }
 
 .timeline__date {
+  position: relative;
+  align-self: start;
   color: var(--blue);
   white-space: nowrap;
 }
@@ -1412,9 +1416,9 @@ html[data-theme="dark"] .notes-image__marker {
   }
 
   .timeline__item {
+    --timeline-date-inset: 0.9rem;
     grid-template-columns: minmax(8.75rem, 0.9fr) minmax(0, 1.1fr);
     gap: 0.75rem;
-    padding-left: 0.9rem;
   }
 
   .achievement-strip__items {
