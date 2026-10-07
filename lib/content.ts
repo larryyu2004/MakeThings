@@ -486,19 +486,19 @@ export const timeline: TimelineEntry[] = [
     },
   },
   {
-    date: { en: "JUL 2024—NOW", zh: "2024年7月—现在" },
-    title: { en: "Bachelor of Information Technology", zh: "信息技术学士" },
-    description: {
-      en: "Adelaide University / Software & Games Development / GPA 6.60 / 7.00.",
-      zh: "阿德莱德大学 / 软件与游戏开发 / GPA 6.60 / 7.00。",
-    },
-  },
-  {
     date: { en: "NOV 2024—FEB 2025", zh: "2024年11月—2025年2月" },
     title: { en: "RISC-V operating system kernel", zh: "RISC-V 操作系统内核" },
     description: {
       en: "Implemented memory management, tracing, mmap files and expanded xv6 file addressing.",
       zh: "实现内存管理、追踪、mmap 文件与扩展的 xv6 文件寻址。",
+    },
+  },
+  {
+    date: { en: "JUL 2024—NOW", zh: "2024年7月—现在" },
+    title: { en: "Bachelor of Information Technology", zh: "信息技术学士" },
+    description: {
+      en: "Adelaide University / Software & Games Development / GPA 6.60 / 7.00.",
+      zh: "阿德莱德大学 / 软件与游戏开发 / GPA 6.60 / 7.00。",
     },
   },
 ];
