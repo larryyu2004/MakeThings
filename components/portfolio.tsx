@@ -237,7 +237,7 @@ function Header({
                   closeMenu();
                 }}
               >
-                中文
+                CN
               </button>
             </div>
 

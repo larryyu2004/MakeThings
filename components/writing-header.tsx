@@ -32,7 +32,7 @@ export default function WritingHeader({ locale, slug }: { locale: WritingLocale;
         <div className="writing-header__actions">
           <div className="locale-toggle" role="group" aria-label={locale === "zh" ? "语言" : "Language"}>
             <Link className="locale-toggle__option" aria-current={locale === "en" ? "page" : undefined} href={writingPath("en", slug)}>EN</Link>
-            <Link className="locale-toggle__option" aria-current={locale === "zh" ? "page" : undefined} href={writingPath("zh", slug)}>中文</Link>
+            <Link className="locale-toggle__option" aria-current={locale === "zh" ? "page" : undefined} href={writingPath("zh", slug)}>CN</Link>
           </div>
           <button className="theme-toggle" type="button" onClick={toggleTheme} aria-label={locale === "zh" ? "切换明暗主题" : "Toggle color theme"}>
             <ThemeIcon className="theme-toggle__icon" />
