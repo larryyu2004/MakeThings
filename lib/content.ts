@@ -99,7 +99,6 @@ export type PortfolioCopy = {
   };
   links: {
     viewProject: string;
-    discussFocus: string;
     readArticle: string;
   };
   contact: {
@@ -187,7 +186,6 @@ export const copy: Record<Locale, PortfolioCopy> = {
     },
     links: {
       viewProject: "View project",
-      discussFocus: "Discuss focus",
       readArticle: "Read related article",
     },
     contact: {
@@ -270,7 +268,6 @@ export const copy: Record<Locale, PortfolioCopy> = {
     },
     links: {
       viewProject: "查看项目",
-      discussFocus: "讨论方向",
       readArticle: "阅读相关文章",
     },
     contact: {

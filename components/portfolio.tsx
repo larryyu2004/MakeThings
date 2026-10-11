@@ -642,7 +642,6 @@ function StackSection({ locale, theme }: { locale: Locale; theme: Theme }) {
 }
 
 function NoteRow({ note, locale, featured }: { note: Note; locale: Locale; featured: boolean }) {
-  const t = copy[locale];
   return (
     <article className={`note-row${featured ? " is-featured" : ""}`}>
       <span className="note-row__number">{note.number}</span>
@@ -651,9 +650,6 @@ function NoteRow({ note, locale, featured }: { note: Note; locale: Locale; featu
         <h3>{localized(note.title, locale)}</h3>
         <p>{localized(note.description, locale)}</p>
       </div>
-      <a className="note-row__link" href="#contact">
-        {t.links.discussFocus} <span aria-hidden="true">→</span>
-      </a>
     </article>
   );
 }

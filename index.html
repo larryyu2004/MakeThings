@@ -890,8 +890,7 @@
       .note-row {
         display: grid;
         grid-template-columns:
-          4rem minmax(8.4rem, 0.46fr) minmax(0, 1.55fr)
-          auto;
+          4rem minmax(8.4rem, 0.46fr) minmax(0, 1.55fr);
         align-items: center;
         gap: clamp(0.8rem, 2vw, 2rem);
         min-height: 7.9rem;
@@ -932,17 +931,6 @@
         color: var(--muted);
         font-size: 0.9rem;
         line-height: 1.4;
-      }
-
-      .note-row__link {
-        display: inline-flex;
-        align-items: center;
-        min-height: 2.8rem;
-        color: var(--blue-deep);
-        font-family: var(--mono);
-        font-size: 0.63rem;
-        letter-spacing: 0.07em;
-        text-transform: uppercase;
       }
 
       .about-grid {
@@ -1451,12 +1439,6 @@
           font-size: 0.56rem;
           line-height: 1.25;
           overflow-wrap: anywhere;
-        }
-
-        .note-row__link {
-          grid-column: 3;
-          min-height: 2rem;
-          margin-top: 0.35rem;
         }
 
         .note-row:hover {
@@ -1983,9 +1965,6 @@
                   deployment and reliable agent workflows.
                 </p>
               </div>
-              <a class="note-row__link" href="#contact"
-                >Discuss focus <span aria-hidden="true">→</span></a
-              >
             </article>
             <article class="note-row">
               <span class="note-row__number">02</span>
@@ -1997,9 +1976,6 @@
                   Engine and Zustand.
                 </p>
               </div>
-              <a class="note-row__link" href="#contact"
-                >Discuss focus <span aria-hidden="true">→</span></a
-              >
             </article>
             <article class="note-row">
               <span class="note-row__number">03</span>
@@ -2011,9 +1987,6 @@
                   databases and APIs.
                 </p>
               </div>
-              <a class="note-row__link" href="#contact"
-                >Discuss focus <span aria-hidden="true">→</span></a
-              >
             </article>
             <article class="note-row">
               <span class="note-row__number">04</span>
@@ -2025,9 +1998,6 @@
                   tests on Water Balance Game and 167 on BRIDGE.
                 </p>
               </div>
-              <a class="note-row__link" href="#contact"
-                >Discuss focus <span aria-hidden="true">→</span></a
-              >
             </article>
             <article class="note-row">
               <span class="note-row__number">05</span>
@@ -2039,9 +2009,6 @@
                   Comfy.
                 </p>
               </div>
-              <a class="note-row__link" href="#contact"
-                >Discuss focus <span aria-hidden="true">→</span></a
-              >
             </article>
           </div>
         </div>
@@ -2364,7 +2331,6 @@
           { selector: "#stack .note-row:nth-child(4) p", en: "Vitest, Playwright, Git, TypeDoc, Doxygen and Xcode — with 351 tests on Water Balance Game and 167 on BRIDGE.", zh: "Vitest、Playwright、Git、TypeDoc、Doxygen 与 Xcode——Water Balance Game 有 351 个测试，BRIDGE 有 167 个。" },
           { selector: "#stack .note-row:nth-child(5) h3", en: "Design and modelling", zh: "设计与建模" },
           { selector: "#stack .note-row:nth-child(5) p", en: "Blender, Figma, Open Design, Obsidian, Krita, Quixel Mixer and Comfy.", zh: "Blender、Figma、Open Design、Obsidian、Krita、Quixel Mixer 与 Comfy。" },
-          { selector: ".note-row__link", en: "Discuss focus", zh: "讨论方向", mode: "leading" },
           { selector: "#about .section-heading__number", en: "03 / About", zh: "03 / 关于" },
           { selector: "#about .section-heading h2", en: "Profile", zh: "简介" },
           { selector: "#about .section-heading__aside", en: "Software engineering with a bias toward interactive systems, careful abstractions and working prototypes.", zh: "偏向交互系统、清晰抽象与可运行原型的软件工程实践。" },
