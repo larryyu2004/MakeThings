@@ -464,7 +464,7 @@ export const notes: Note[] = [
 
 export const timeline: TimelineEntry[] = [
   {
-    date: { en: "2026—now", zh: "2026—现在" },
+    date: { en: "Mar 2026—Aug 2026", zh: "2026年3月—2026年8月" },
     title: { en: "Water Balance Game / BRIDGE", zh: "Water Balance Game / BRIDGE" },
     description: {
       en: "Building an interactive water-security simulation and an MCP-based AI coding-agent extension.",
