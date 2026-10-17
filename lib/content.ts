@@ -483,6 +483,14 @@ export const timeline: TimelineEntry[] = [
     },
   },
   {
+    date: { en: "MAR 2025—APR 2025", zh: "2025年3月—2025年4月" },
+    title: { en: "Memory Pool", zh: "Memory Pool" },
+    description: {
+      en: "Built a memory pool to manage memory allocation and reuse.",
+      zh: "构建内存池，用于管理内存分配与复用。",
+    },
+  },
+  {
     date: { en: "NOV 2024—FEB 2025", zh: "2024年11月—2025年2月" },
     title: { en: "RISC-V operating system kernel", zh: "RISC-V 操作系统内核" },
     description: {
